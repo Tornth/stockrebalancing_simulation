@@ -142,12 +142,20 @@
             >
               <div class="absolute top-0 left-0 right-0 h-1 bg-blue-400 shadow-[0_0_15px_rgba(96,165,250,0.8)]"></div>
             </div>
+            <!-- Reserved Zone (above buffer) -->
+            <div 
+              v-if="reservedStock > 0"
+              class="absolute bottom-0 left-0 right-0 border-t-2 border-dashed border-amber-500/70 bg-amber-500/20 transition-all duration-300"
+              :style="{ height: ((effectiveBuffer + reservedStock) / 10) + '%' }"
+            >
+              <span class="absolute -top-6 left-2 text-xs text-amber-400 font-mono">RESERVED ({{ reservedStock }})</span>
+            </div>
             <!-- Buffer Zone -->
             <div 
               class="absolute bottom-0 left-0 right-0 border-t-2 border-dashed border-drift-alert/50 bg-drift-alert/5"
-              :style="{ height: (bufferStock / 10) + '%' }"
+              :style="{ height: (effectiveBuffer / 10) + '%' }"
             >
-              <span class="absolute -top-6 right-2 text-xs text-drift-alert font-mono">INSURANCE GAP ({{ bufferPercent }}%)</span>
+              <span class="absolute -top-6 right-2 text-xs text-drift-alert font-mono">BUFFER ({{ effectiveBuffer }})</span>
             </div>
             
             <div class="absolute inset-0 flex flex-col items-center justify-center text-center">
@@ -156,15 +164,45 @@
             </div>
           </div>
 
-          <!-- Sales Stock display -->
-          <div class="flex justify-between items-center p-4 bg-slate-800/50 rounded-xl border border-slate-700">
-            <div class="sales-stock-display">
-              <p class="text-xs text-slate-400 uppercase font-bold tracking-tight">Sales Stock (Listed)</p>
-              <p class="text-3xl font-black text-blue-400">{{ salesStock }}</p>
+          <!-- Stock Breakdown -->
+          <div class="space-y-3">
+            <!-- Sales Stock -->
+            <div class="flex justify-between items-center p-4 bg-slate-800/50 rounded-xl border border-slate-700">
+              <div class="sales-stock-display">
+                <p class="text-xs text-slate-400 uppercase font-bold tracking-tight">Sales Stock (Available)</p>
+                <p class="text-3xl font-black text-blue-400">{{ salesStock }}</p>
+              </div>
+              <div class="text-right">
+                <p class="text-xs text-slate-400 uppercase font-bold tracking-tight">Buffer</p>
+                <p class="text-2xl font-black text-drift-alert">{{ effectiveBuffer }}</p>
+                <p v-if="effectiveBuffer < bufferStock" class="text-[9px] text-amber-500 italic">Capped (was {{ bufferStock }})</p>
+              </div>
             </div>
-            <div class="text-right">
-              <p class="text-xs text-slate-400 uppercase font-bold tracking-tight">Buffer</p>
-              <p class="text-2xl font-black text-drift-alert">{{ bufferStock }}</p>
+            
+            <!-- Reserved Stock + Ship All -->
+            <div 
+              class="flex justify-between items-center p-4 rounded-xl border transition-all"
+              :class="reservedStock > 0 ? 'bg-amber-900/30 border-amber-500/50' : 'bg-slate-800/30 border-slate-700/50'"
+            >
+              <div>
+                <p class="text-xs text-amber-400 uppercase font-bold tracking-tight flex items-center gap-2">
+                  <span class="w-2 h-2 rounded-full" :class="reservedStock > 0 ? 'bg-amber-400 animate-pulse' : 'bg-slate-600'"></span>
+                  Reserved (Pending RTS)
+                </p>
+                <p class="text-2xl font-black" :class="reservedStock > 0 ? 'text-amber-400' : 'text-slate-600'">
+                  {{ reservedStock }}
+                </p>
+              </div>
+              <button 
+                @click="shipAll"
+                :disabled="reservedStock === 0"
+                class="px-4 py-2 rounded-lg font-bold text-xs uppercase tracking-wider transition-all"
+                :class="reservedStock > 0 
+                  ? 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-lg shadow-emerald-900/50' 
+                  : 'bg-slate-700 text-slate-500 cursor-not-allowed'"
+              >
+                Ship All ({{ reservedStock }})
+              </button>
             </div>
           </div>
         </div>
@@ -231,6 +269,8 @@ export default {
       physicalStock: 1000,
       displayPhysicalStock: 1000,
       bufferPercent: 5,
+      bufferStock: 50, // Fixed buffer: recalculates only on slider change or admin adjustment
+      reservedStock: 0, // Units held for pending orders (waiting for RTS)
       pctThreshold: 5,
       absThreshold: 2,
       isSyncing: false,
@@ -258,11 +298,13 @@ export default {
     activeSku() {
       return this.skuTypes.find(s => s.id === this.selectedSku);
     },
-    bufferStock() {
-      return Math.ceil(this.physicalStock * (this.bufferPercent / 100));
+    // Effective buffer: capped at physical stock for safety (Option B)
+    effectiveBuffer() {
+      return Math.min(this.bufferStock, this.physicalStock);
     },
     salesStock() {
-      return Math.max(0, this.physicalStock - this.bufferStock);
+      // Formula: Physical - Buffer - Reserved
+      return Math.max(0, this.physicalStock - this.effectiveBuffer - this.reservedStock);
     },
     effectiveInternalStock() {
       // Returns total stock currently on marketplaces (as singles)
@@ -272,6 +314,13 @@ export default {
   watch: {
     physicalStock(newVal) {
       gsap.to(this, { displayPhysicalStock: newVal, duration: 0.5 });
+    },
+    bufferPercent: {
+      handler(newVal) {
+        // Recalculate fixed buffer when slider changes
+        this.bufferStock = Math.ceil(this.physicalStock * (newVal / 100));
+        this.addLog(`Buffer recalculated: ${this.bufferStock} units (${newVal}% of ${this.physicalStock})`);
+      }
     },
     salesStock: {
       handler() {
@@ -406,16 +455,16 @@ export default {
       const channel = this.channels.find(c => c.id === channelId);
       const factor = this.activeSku.factor;
       
-      if (this.physicalStock < factor) {
-        this.addLog(`ERROR: Physical stock exhausted! Cannot fulfill ${this.activeSku.name}.`);
+      // Check if enough available stock (physical - buffer - reserved)
+      if (this.salesStock < factor) {
+        this.addLog(`ERROR: No available stock! Sales Stock: ${this.salesStock}, Required: ${factor}`);
         return;
       }
 
-      // Stage 1: Physical Pulse (Instant)
-      // This immediately recalculates 'Ideal Stock' for all channels
-      this.addLog(`ORDER_IN: ${this.activeSku.name} sale on ${channel.name}. Mental Model: Brain subtracts ${factor} units first.`);
+      // Stage 1: Reserve units (don't touch physical yet)
+      this.reservedStock += factor;
+      this.addLog(`ORDER_IN: ${this.activeSku.name} sale on ${channel.name}. Reserved: +${factor} → Total Reserved: ${this.reservedStock}`);
       gsap.to(".physical-tank-main", { x: 5, yoyo: true, repeat: 3, duration: 0.05 });
-      this.physicalStock -= factor;
 
       // Stage 2: Data Packet (Visual Flow)
       this.showDataPacket(channelId);
@@ -460,6 +509,35 @@ export default {
       } else {
         this.addLog(`Drift Ignored: Overall Singles drift is within safe bounds.`);
       }
+    },
+    async shipAll() {
+      if (this.reservedStock === 0) {
+        this.addLog(`No pending orders to ship.`);
+        return;
+      }
+      
+      const toShip = this.reservedStock;
+      
+      // Safety check: can't ship more than physical stock
+      if (toShip > this.physicalStock) {
+        this.addLog(`ERROR: Cannot ship ${toShip} units. Only ${this.physicalStock} physical units available!`);
+        return;
+      }
+      
+      this.isSyncing = true;
+      this.addLog(`READY TO SHIP: Processing ${toShip} units...`);
+      
+      // Visual pulse
+      gsap.to(".physical-tank-main", { scale: 0.98, yoyo: true, repeat: 1, duration: 0.2 });
+      
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Fulfill orders: Physical decreases, Reserved clears
+      this.physicalStock -= toShip;
+      this.reservedStock = 0;
+      
+      this.isSyncing = false;
+      this.addLog(`SHIPPED: ${toShip} units left warehouse. Physical: ${this.physicalStock}, Reserved: ${this.reservedStock}`);
     },
     showDataPacket(targetId) {
       const packet = this.packetPool.find(p => !p.active);
