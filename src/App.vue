@@ -1,5 +1,5 @@
 <template>
-  <div id="app" class="min-h-screen p-8 relative flex flex-col" :class="{ 'system-in-flight': isSyncing }">
+  <div id="app" class="min-h-screen p-8 pb-16 relative" :class="{ 'system-in-flight': isSyncing }">
     <!-- In-Flight Overlay -->
     <div v-if="isSyncing" class="fixed inset-0 z-50 system-in-flight-overlay flex items-center justify-center">
       <div class="glass-card p-6 flex flex-col items-center">
@@ -125,7 +125,7 @@
       </div>
     </transition>
 
-    <main class="flex-grow grid grid-cols-12 gap-8">
+    <main class="grid grid-cols-12 gap-8">
       <!-- Left Panel: The Brain -->
       <section class="col-span-4 flex flex-col gap-8">
         <div class="glass-card p-6 h-full">
