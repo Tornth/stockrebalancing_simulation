@@ -13,7 +13,7 @@
     <header class="mb-8 flex justify-between items-end border-b border-slate-800 pb-6">
       <div>
         <h1 class="text-4xl font-extrabold tracking-tight text-white mb-2">
-          Omnichannel <span class="text-blue-400">Inventory Engine</span>
+          Stock <span class="text-blue-400">Rebalancing Engine</span>
         </h1>
         <div class="flex gap-4 items-center">
           <div class="bg-slate-800/80 p-1 rounded-lg flex gap-1 border border-slate-700">
@@ -293,28 +293,51 @@ export default {
     updateIdeals() {
       const strategy = this.previewStrategy || this.selectedStrategy;
       
+      if (strategy === 'mirror') {
+        // Mirror: All channels get full salesStock
+        this.channels.forEach(ch => {
+          ch.ideal = this.salesStock;
+          ch.ghostValue = this.previewStrategy ? this.salesStock : null;
+        });
+        return;
+      }
+      
+      // Calculate base ideals (use floor for safe under-allocation)
+      let totalAllocated = 0;
       this.channels.forEach(ch => {
         let baseIdeal = 0;
         if (strategy === 'weighted') {
           baseIdeal = Math.floor(this.salesStock * (ch.weight / 100));
         } else if (strategy === 'equal') {
           baseIdeal = Math.floor(this.salesStock / this.channels.length);
-        } else if (strategy === 'mirror') {
-          baseIdeal = this.salesStock; // Mirror listed stock to all channels
         }
-        
-        // Show as "singles" or adjusted by SKU factor? 
-        // Requirements say: "When Pack of 12 is sold ... Pack of 6 and Single shrink simultaneously"
-        // So ideal is always based on Physical Singles available.
         ch.ideal = baseIdeal;
+        totalAllocated += baseIdeal;
         
-        // Calculate ghost value if in preview
-        if (this.previewStrategy) {
-          ch.ghostValue = baseIdeal;
-        } else {
-          ch.ghostValue = null;
-        }
+        // Ghost value for preview
+        ch.ghostValue = this.previewStrategy ? baseIdeal : null;
       });
+
+      // Remainder Capture: Distribute remaining units proportionally
+      let remainder = this.salesStock - totalAllocated;
+      if (remainder > 0 && this.salesStock > 0) {
+        // Sort by weight descending for weighted, or alphabetically for equal
+        const sortedChannels = [...this.channels].sort((a, b) => {
+          if (strategy === 'weighted') return b.weight - a.weight;
+          return a.id.localeCompare(b.id);
+        });
+        
+        // Distribute remainder one unit at a time to highest priority channels
+        let i = 0;
+        while (remainder > 0) {
+          sortedChannels[i % sortedChannels.length].ideal += 1;
+          if (this.previewStrategy) {
+            sortedChannels[i % sortedChannels.length].ghostValue += 1;
+          }
+          remainder--;
+          i++;
+        }
+      }
     },
     setPreviewStrategy(strategy) {
       if (this.selectedStrategy === strategy) {
@@ -413,21 +436,20 @@ export default {
       channel.internal = Math.max(0, channel.internal - factor);
 
       // Stage 4: Global Drift Gatekeeper (Omnichannel Scan)
-      // We check ALL channels because a drop in physical stock affects everyone's Ideal
+      // We check raw SINGLES because drift in sets is just a derivative of single-unit movement.
       let syncRequired = false;
       let triggerReason = "";
 
       for (const ch of this.channels) {
         if (ch.isManual) continue;
 
-        const displayIdeal = Math.floor(ch.ideal / factor);
-        const displayInternal = Math.floor(ch.internal / factor);
-        const absDrift = Math.abs(displayIdeal - displayInternal);
-        const pctDrift = displayIdeal > 0 ? (absDrift / displayIdeal) : 0;
+        // Use raw singles for logic consistency
+        const absDrift = Math.abs(ch.ideal - ch.internal);
+        const pctDrift = ch.ideal > 0 ? (absDrift / ch.ideal) : 0;
 
         if (pctDrift > (this.pctThreshold / 100) || absDrift >= this.absThreshold) {
           syncRequired = true;
-          triggerReason = `${ch.name} drift (${absDrift} units / ${Math.round(pctDrift * 100)}%) exceeded ${this.pctThreshold}% / ${this.absThreshold}u gatekeeper.`;
+          triggerReason = `${ch.name} singles drift (${absDrift}u / ${Math.round(pctDrift * 100)}%) exceeded ${this.pctThreshold}% / ${this.absThreshold}u gatekeeper.`;
           break; 
         }
       }
@@ -436,7 +458,7 @@ export default {
         this.addLog(`Sync Triggered: ${triggerReason}`);
         this.performMasterSync();
       } else {
-        this.addLog(`Drift Ignored: System-wide drift is within safe parameters (Gatekeeper: ${this.pctThreshold}% / ${this.absThreshold}u).`);
+        this.addLog(`Drift Ignored: Overall Singles drift is within safe bounds.`);
       }
     },
     showDataPacket(targetId) {
@@ -571,8 +593,13 @@ export default {
       this.packetPool.push({ id: i, active: false });
     }
     
-    this.addLog("Inventory Engine Initialized. Monitoring physical stock [1,000 units].");
+    // Calculate ideals and sync internals on load
     this.updateIdeals();
+    this.channels.forEach(ch => {
+      ch.internal = ch.ideal;
+    });
+    
+    this.addLog("Inventory Engine Initialized. Monitoring physical stock [1,000 units].");
   }
 };
 </script>

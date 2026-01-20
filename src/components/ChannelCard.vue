@@ -63,7 +63,9 @@
       >
         <div class="flex justify-between items-center mb-1">
           <p class="text-[10px] text-slate-500 uppercase font-bold">Marketplace ({{ unitLabel }})</p>
-          <span v-if="isOverCapacity" class="text-[8px] text-red-500 font-black animate-pulse">EXCEEDS PHYSICAL</span>
+          <span v-if="isOverCapacity" class="text-[8px] text-red-500 font-black animate-pulse">
+            SHORTFALL: {{ channel.internal - salesStock }} SINGLES
+          </span>
         </div>
         <input 
           v-if="channel.isManual"
@@ -166,12 +168,18 @@ export default {
       // A channel's singles cannot exceed the available singles in the tank
       return this.channel.internal > this.salesStock;
     },
+    // Use raw singles for accurate drift (matches App.vue gatekeeper logic)
+    rawDrift() {
+      return Math.abs(this.channel.ideal - this.channel.internal);
+    },
     driftSeverity() {
+      // Display-friendly: show drift in current SKU unit for UI
       return Math.abs(this.displayIdeal - this.displayInternal);
     },
     driftPercent() {
-      if (this.displayIdeal === 0) return 0;
-      return Math.round((this.driftSeverity / this.displayIdeal) * 100);
+      // Use raw singles for percentage to avoid flooring errors
+      if (this.channel.ideal === 0) return 0;
+      return Math.round((this.rawDrift / this.channel.ideal) * 100);
     },
     ghostDelta() {
       if (this.channel.ghostValue === null) return 0;
@@ -186,9 +194,10 @@ export default {
     },
     driftSeverityClass() {
       const pct = this.driftPercent;
-      const abs = this.driftSeverity;
-      // Hardening logic: Uses user-defined thresholds
-      if (pct > this.pctThreshold || abs >= this.absThreshold) return 'text-drift-alert animate-pulse drop-shadow-[0_0_8px_rgba(244,63,94,0.6)]';
+      // Use raw singles drift for absolute threshold (matches App.vue gatekeeper)
+      const absRaw = this.rawDrift;
+      // Hardening logic: Uses user-defined thresholds with raw singles
+      if (pct > this.pctThreshold || absRaw >= this.absThreshold) return 'text-drift-alert animate-pulse drop-shadow-[0_0_8px_rgba(244,63,94,0.6)]';
       if (pct > 0) return 'text-amber-400';
       return 'text-sync-pulse';
     }
