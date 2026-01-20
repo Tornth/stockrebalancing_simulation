@@ -204,6 +204,61 @@
                 Ship All ({{ reservedStock }})
               </button>
             </div>
+            
+            <!-- Stock Adjustment -->
+            <div class="p-4 bg-slate-900/50 rounded-xl border border-slate-600">
+              <p class="text-xs text-slate-400 uppercase font-bold tracking-tight mb-3 flex items-center gap-2">
+                <span class="w-1.5 h-1.5 bg-slate-400 rounded-full"></span>
+                Admin Stock Adjustment
+              </p>
+              <div class="flex gap-2 items-center">
+                <input 
+                  v-model.number="stockAdjustmentInput"
+                  type="number"
+                  placeholder="New stock..."
+                  class="flex-grow bg-slate-800 border border-slate-600 rounded-lg px-3 py-2 text-white font-mono text-sm focus:border-blue-500 focus:outline-none"
+                >
+                <button 
+                  @click="adjustStock(stockAdjustmentInput)"
+                  :disabled="!stockAdjustmentInput || stockAdjustmentInput < 0"
+                  class="px-4 py-2 rounded-lg font-bold text-xs uppercase transition-all"
+                  :class="stockAdjustmentInput && stockAdjustmentInput >= 0 
+                    ? 'bg-blue-600 hover:bg-blue-500 text-white' 
+                    : 'bg-slate-700 text-slate-500 cursor-not-allowed'"
+                >
+                  Apply
+                </button>
+              </div>
+              <div class="flex gap-2 mt-2">
+                <button 
+                  @click="adjustStock(physicalStock + 100)"
+                  class="flex-1 px-2 py-1.5 rounded bg-emerald-900/50 border border-emerald-700/50 text-emerald-400 text-[10px] font-bold hover:bg-emerald-800/50 transition-all"
+                >
+                  +100
+                </button>
+                <button 
+                  @click="adjustStock(physicalStock + 500)"
+                  class="flex-1 px-2 py-1.5 rounded bg-emerald-900/50 border border-emerald-700/50 text-emerald-400 text-[10px] font-bold hover:bg-emerald-800/50 transition-all"
+                >
+                  +500
+                </button>
+                <button 
+                  @click="adjustStock(Math.max(0, physicalStock - 100))"
+                  class="flex-1 px-2 py-1.5 rounded bg-red-900/50 border border-red-700/50 text-red-400 text-[10px] font-bold hover:bg-red-800/50 transition-all"
+                >
+                  -100
+                </button>
+                <button 
+                  @click="adjustStock(1000)"
+                  class="flex-1 px-2 py-1.5 rounded bg-slate-700/50 border border-slate-600/50 text-slate-400 text-[10px] font-bold hover:bg-slate-600/50 transition-all"
+                >
+                  Reset
+                </button>
+              </div>
+              <p v-if="stockAdjustmentInput && stockAdjustmentInput !== physicalStock" class="text-[10px] text-blue-400 mt-2 font-mono">
+                Preview: Buffer will become {{ Math.ceil(stockAdjustmentInput * (bufferPercent / 100)) }} ({{ bufferPercent }}% of {{ stockAdjustmentInput }})
+              </p>
+            </div>
           </div>
         </div>
       </section>
@@ -291,7 +346,8 @@ export default {
         { id: 'tiktok', name: 'TikTok', weight: 20, internal: 190, ideal: 190, drift: 0, isManual: false, apiFailing: false },
         { id: 'website', name: 'BentoWeb', weight: 10, internal: 95, ideal: 95, drift: 0, isManual: false, apiFailing: false }
       ],
-      packetPool: []
+      packetPool: [],
+      stockAdjustmentInput: null
     };
   },
   computed: {
@@ -338,6 +394,34 @@ export default {
     toggleBOM() {
       this.showBOM = !this.showBOM;
       this.addLog(`${this.showBOM ? 'Enabled' : 'Disabled'} BOM Relationship mapping.`);
+    },
+    adjustStock(newStock) {
+      if (newStock === null || newStock === undefined || newStock < 0) return;
+      
+      const oldStock = this.physicalStock;
+      const diff = newStock - oldStock;
+      const direction = diff > 0 ? 'RECEIVING' : diff < 0 ? 'ADJUSTMENT' : 'NO CHANGE';
+      
+      if (diff === 0) {
+        this.addLog(`Stock adjustment: No change (already at ${newStock})`);
+        this.stockAdjustmentInput = null;
+        return;
+      }
+      
+      // Update physical stock
+      this.physicalStock = newStock;
+      
+      // Always recalculate buffer on admin adjustment
+      const oldBuffer = this.bufferStock;
+      this.bufferStock = Math.ceil(newStock * (this.bufferPercent / 100));
+      
+      this.addLog(`ADMIN ${direction}: Physical ${oldStock} → ${newStock} (${diff > 0 ? '+' : ''}${diff}). Buffer: ${oldBuffer} → ${this.bufferStock}`);
+      
+      // Clear input
+      this.stockAdjustmentInput = null;
+      
+      // Trigger sync to update ideals
+      this.performMasterSync();
     },
     updateIdeals() {
       const strategy = this.previewStrategy || this.selectedStrategy;
