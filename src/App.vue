@@ -13,7 +13,7 @@
     <header class="mb-8 flex justify-between items-end border-b border-slate-800 pb-6">
       <div>
         <h1 class="text-4xl font-extrabold tracking-tight text-white mb-2">
-          Stock <span class="text-blue-400">Rebalancing Engine</span>
+          Stock<span class="text-blue-400">Rebalancing Engine</span>
         </h1>
         <div class="flex gap-4 items-center">
           <div class="bg-slate-800/80 p-1 rounded-lg flex gap-1 border border-slate-700">
