@@ -3,20 +3,22 @@
 @tailwind utilities;
 
 :root {
-  --brand-gradient: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+  --brand-gradient: linear-gradient(135deg, #f8fafc 0%, #ffffff 100%);
+  --brand-blue: #0088FF;
 }
 
 body {
   margin: 0;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  color: #f1f5f9;
+  font-family: 'Noto Sans Thai', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  color: #1f2937;
+  background-color: #ffffff;
 }
 
 .glass-card {
-  background: rgba(30, 41, 59, 0.7);
-  backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
 }
 
 .system-in-flight {
@@ -24,6 +26,7 @@ body {
 }
 
 .system-in-flight-overlay {
+  background: rgba(255, 255, 255, 0.85);
   backdrop-filter: blur(4px);
   transition: all 0.5s ease;
 }
@@ -43,7 +46,7 @@ input[type=range]::-webkit-slider-runnable-track {
   width: 100%;
   height: 6px;
   cursor: pointer;
-  background: #334155;
+  background: #e5e7eb;
   border-radius: 3px;
 }
 
@@ -51,11 +54,11 @@ input[type=range]::-webkit-slider-thumb {
   height: 18px;
   width: 18px;
   border-radius: 50%;
-  background: #60a5fa;
+  background: #0088FF;
   cursor: pointer;
   -webkit-appearance: none;
   margin-top: -6px;
-  box-shadow: 0 0 10px rgba(96, 165, 250, 0.5);
+  box-shadow: 0 2px 6px rgba(0, 136, 255, 0.3);
 }
 
 /* Rolling Numbers */
@@ -71,3 +74,4 @@ input[type=range]::-webkit-slider-thumb {
   transform: translateY(-20px);
   opacity: 0;
 }
+

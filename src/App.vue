@@ -1,35 +1,35 @@
 <template>
-  <div id="app" class="min-h-screen p-8 pb-16 relative" :class="{ 'system-in-flight': isSyncing }">
+  <div id="app" class="min-h-screen p-8 pb-16 relative font-thai" :class="{ 'system-in-flight': isSyncing }">
     <!-- In-Flight Overlay -->
     <div v-if="isSyncing" class="fixed inset-0 z-50 system-in-flight-overlay flex items-center justify-center">
-      <div class="glass-card p-6 flex flex-col items-center">
-        <div class="w-12 h-12 border-4 border-sync-pulse border-t-transparent rounded-full animate-spin mb-4"></div>
-        <p class="text-xl font-bold text-sync-pulse">SYSTEM IN-FLIGHT: SYNCING...</p>
-        <p class="text-sm text-slate-400">Performing mission-critical operations</p>
+      <div class="glass-card p-8 flex flex-col items-center">
+        <div class="w-16 h-16 border-4 border-brand-blue border-t-transparent rounded-full animate-spin mb-6"></div>
+        <p class="text-3xl font-bold text-brand-blue mb-2">กำลัง Sync สต็อก...</p>
+        <p class="text-lg text-gray-500">ระบบกำลังปรับ Sales Stock ให้ตรงตามเป้าหมาย</p>
       </div>
     </div>
 
     <!-- Header -->
-    <header class="mb-8 flex justify-between items-end border-b border-slate-800 pb-6">
+    <header class="mb-8 flex justify-between items-end border-b border-gray-200 pb-6">
       <div>
-        <h1 class="text-4xl font-extrabold tracking-tight text-white mb-2">
-          Stock<span class="text-blue-400">Rebalancing Simulator</span>
+        <h1 class="text-4xl font-extrabold tracking-tight text-brand-text mb-2">
+          Stock<span class="text-brand-blue">Rebalancing Simulator</span>
         </h1>
         <div class="flex gap-4 items-center">
-          <div class="bg-slate-800/80 p-1 rounded-lg flex gap-1 border border-slate-700">
+          <div class="bg-gray-100 p-1 rounded-lg flex gap-1 border border-gray-200">
             <button 
               v-for="s in ['weighted', 'equal', 'mirror']" :key="s"
               @click="setPreviewStrategy(s)"
               class="px-3 py-1.5 rounded-md text-[10px] font-bold uppercase tracking-widest transition-all"
               :class="[
-                selectedStrategy === s ? 'bg-blue-600 text-white shadow-lg' : 'text-slate-400 hover:text-white',
-                previewStrategy === s ? 'ring-2 ring-blue-400 ring-offset-2 ring-offset-slate-900 bg-blue-900/50' : ''
+                selectedStrategy === s ? 'bg-brand-blue text-white shadow-lg' : 'text-gray-500 hover:text-brand-text',
+                previewStrategy === s ? 'ring-2 ring-brand-blue ring-offset-2 ring-offset-white bg-blue-50' : ''
               ]"
             >
               {{ s }}
             </button>
           </div>
-          <span class="text-xs text-slate-500 font-medium">Distribution Strategy</span>
+          <span class="text-xs text-gray-500 font-medium">Distribution Strategy</span>
         </div>
       </div>
 
@@ -39,7 +39,7 @@
             v-for="sku in skuTypes" :key="sku.id"
             @click="selectedSku = sku.id"
             class="px-3 py-1.5 rounded-lg border text-[10px] font-bold uppercase transition-all"
-            :class="selectedSku === sku.id ? 'bg-blue-600 border-blue-400 text-white shadow-lg' : 'bg-slate-800 border-slate-700 text-slate-400 hover:border-slate-500'"
+            :class="selectedSku === sku.id ? 'bg-brand-blue border-brand-blue text-white shadow-lg' : 'bg-white border-gray-300 text-gray-500 hover:border-gray-400'"
           >
             {{ sku.name }}
           </button>
@@ -49,24 +49,16 @@
           <button 
             @click="showTuning = !showTuning"
             class="px-4 py-2 rounded-lg border text-xs font-bold uppercase tracking-wider transition-all"
-            :class="showTuning ? 'bg-amber-600 border-amber-400 text-white shadow-lg shadow-amber-900/40' : 'bg-slate-800 border-slate-700 text-slate-400'"
+            :class="showTuning ? 'bg-amber-500 border-amber-400 text-white shadow-lg shadow-amber-200/40' : 'bg-white border-gray-300 text-gray-500'"
           >
             Engine Tuning
           </button>
           
-          <button 
-            @click="toggleBOM"
-            class="px-4 py-2 rounded-lg border text-xs font-bold uppercase tracking-wider transition-all"
-            :class="showBOM ? 'bg-indigo-600 border-indigo-400 text-white' : 'bg-slate-800 border-slate-700 text-slate-400'"
-          >
-            BOM Visuals: {{ showBOM ? 'ON' : 'OFF' }}
-          </button>
-          
-          <div v-if="previewStrategy" class="flex items-center gap-3 animate-pulse">
-             <span class="text-[10px] font-black text-blue-400 uppercase tracking-tighter">Unsaved Strategy Draft</span>
+<div v-if="previewStrategy" class="flex items-center gap-3 animate-pulse">
+             <span class="text-[10px] font-black text-brand-blue uppercase tracking-tighter">Unsaved Strategy Draft</span>
              <button 
                @click="applyStrategy"
-               class="px-6 py-2 bg-sync-pulse hover:bg-emerald-400 text-black font-black text-xs uppercase rounded-lg shadow-[0_0_15px_rgba(16,185,129,0.5)] transition-all"
+               class="px-6 py-2 bg-sync-pulse hover:bg-emerald-400 text-white font-black text-xs uppercase rounded-lg shadow-lg transition-all"
              >
                Confirm Master Sync
              </button>
@@ -77,70 +69,80 @@
 
     <!-- Tuning Panel -->
     <transition name="slide-fade">
-      <div v-if="showTuning" class="mb-8 glass-card border-amber-500/30 p-6 grid grid-cols-3 gap-8">
+      <div v-if="showTuning" class="mb-8 glass-card border-amber-300 p-6 grid grid-cols-3 gap-8">
         <div class="space-y-4">
-          <h3 class="text-xs font-black text-amber-500 uppercase flex items-center gap-2">
+          <h3 class="text-xs font-black text-amber-600 uppercase flex items-center gap-2">
             <span class="w-1.5 h-1.5 bg-amber-500 rounded-full"></span>
             Safety Guardrails
           </h3>
           <div class="space-y-1">
             <div class="flex justify-between text-[11px] font-mono">
-              <span class="text-slate-400">Insurance Buffer</span>
-              <span class="text-amber-400 font-bold">{{ bufferPercent }}%</span>
+              <span class="text-gray-500">Insurance Buffer</span>
+              <span class="text-amber-600 font-bold">{{ bufferPercent }}%</span>
             </div>
             <input type="range" v-model.number="bufferPercent" min="0" max="30" step="1" class="w-full accent-amber-500">
           </div>
-          <p class="text-[9px] text-slate-500 italic">Reduces total physical stock listed across all channels.</p>
+          <p class="text-[9px] text-gray-400 italic">Reduces total physical stock listed across all channels.</p>
         </div>
 
         <div class="space-y-4">
-          <h3 class="text-xs font-black text-blue-400 uppercase flex items-center gap-2">
-            <span class="w-1.5 h-1.5 bg-blue-400 rounded-full"></span>
+          <h3 class="text-xs font-black text-brand-blue uppercase flex items-center gap-2">
+            <span class="w-1.5 h-1.5 bg-brand-blue rounded-full"></span>
             Sync Sensitivity (Rel)
           </h3>
           <div class="space-y-1">
             <div class="flex justify-between text-[11px] font-mono">
-              <span class="text-slate-400">Drift Threshold</span>
-              <span class="text-blue-400 font-bold">{{ pctThreshold }}%</span>
+              <span class="text-gray-500">Drift Threshold</span>
+              <span class="text-brand-blue font-bold">{{ pctThreshold }}%</span>
             </div>
             <input type="range" v-model.number="pctThreshold" min="1" max="15" step="1" class="w-full accent-blue-500">
           </div>
-          <p class="text-[9px] text-slate-500 italic">Percentage difference before triggering a global sync.</p>
+          <p class="text-[9px] text-gray-400 italic">Percentage difference before triggering a global sync.</p>
         </div>
 
         <div class="space-y-4">
-          <h3 class="text-xs font-black text-pink-400 uppercase flex items-center gap-2">
-            <span class="w-1.5 h-1.5 bg-pink-400 rounded-full"></span>
+          <h3 class="text-xs font-black text-pink-500 uppercase flex items-center gap-2">
+            <span class="w-1.5 h-1.5 bg-pink-500 rounded-full"></span>
             Sync Sensitivity (Abs)
           </h3>
           <div class="space-y-1">
             <div class="flex justify-between text-[11px] font-mono">
-              <span class="text-slate-400">Absolute Gap</span>
-              <span class="text-pink-400 font-bold">{{ absThreshold }} units</span>
+              <span class="text-gray-500">Absolute Gap</span>
+              <span class="text-pink-500 font-bold">{{ absThreshold }} units</span>
             </div>
             <input type="range" v-model.number="absThreshold" min="1" max="10" step="1" class="w-full accent-pink-500">
           </div>
-          <p class="text-[9px] text-slate-500 italic">Unit difference threshold for instant reconciliation.</p>
+          <p class="text-[9px] text-gray-400 italic">Unit difference threshold for instant reconciliation.</p>
         </div>
       </div>
     </transition>
 
-    <main class="grid grid-cols-12 gap-8">
+    <main class="grid grid-cols-12 gap-8 relative">
+      <!-- Data Packet Layer (spans entire main grid) -->
+      <div class="absolute inset-0 pointer-events-none z-10 overflow-visible" id="packet-layer">
+        <div 
+          v-for="p in packetPool" 
+          :key="p.id" 
+          :id="'packet-' + p.id"
+          class="absolute w-3 h-3 bg-brand-blue rounded-full shadow-[0_0_10px_rgba(0,136,255,0.5)] opacity-0"
+        ></div>
+      </div>
+
       <!-- Left Panel: The Brain -->
       <section class="col-span-4 flex flex-col gap-8">
         <div class="glass-card p-6 h-full">
-          <h2 class="text-xl font-bold mb-6 flex items-center gap-2">
-            <span class="w-2 h-2 bg-blue-400 rounded-full animate-pulse"></span>
+          <h2 class="text-xl font-bold mb-6 flex items-center gap-2 text-brand-text">
+            <span class="w-2 h-2 bg-brand-blue rounded-full animate-pulse"></span>
             Inventory "Brain"
           </h2>
           
           <!-- Physical Tank Visualization -->
-          <div class="relative h-64 bg-slate-900 rounded-2xl border border-slate-700 overflow-hidden mb-8 physical-tank-main">
+          <div class="relative h-64 bg-gray-50 rounded-2xl border border-gray-200 overflow-hidden mb-8 physical-tank-main">
             <div 
-              class="absolute bottom-0 left-0 right-0 bg-blue-600/30 transition-all duration-500"
+              class="absolute bottom-0 left-0 right-0 bg-brand-blue/20 transition-all duration-500"
               :style="{ height: (physicalStock / 10) + '%' }"
             >
-              <div class="absolute top-0 left-0 right-0 h-1 bg-blue-400 shadow-[0_0_15px_rgba(96,165,250,0.8)]"></div>
+              <div class="absolute top-0 left-0 right-0 h-1 bg-brand-blue shadow-[0_0_10px_rgba(0,136,255,0.5)]"></div>
             </div>
             <!-- Reserved Zone (above buffer) -->
             <div 
@@ -148,32 +150,32 @@
               class="absolute bottom-0 left-0 right-0 border-t-2 border-dashed border-amber-500/70 bg-amber-500/20 transition-all duration-300"
               :style="{ height: ((effectiveBuffer + reservedStock) / 10) + '%' }"
             >
-              <span class="absolute -top-6 left-2 text-xs text-amber-400 font-mono">RESERVED ({{ reservedStock }})</span>
+              <span class="absolute -top-6 left-2 text-xs text-amber-600 font-mono">RESERVED ({{ reservedStock }})</span>
             </div>
             <!-- Buffer Zone -->
             <div 
-              class="absolute bottom-0 left-0 right-0 border-t-2 border-dashed border-drift-alert/50 bg-drift-alert/5"
+              class="absolute bottom-0 left-0 right-0 border-t-2 border-dashed border-drift-alert/50 bg-drift-alert/10"
               :style="{ height: (effectiveBuffer / 10) + '%' }"
             >
               <span class="absolute -top-6 right-2 text-xs text-drift-alert font-mono">BUFFER ({{ effectiveBuffer }})</span>
             </div>
             
             <div class="absolute inset-0 flex flex-col items-center justify-center text-center">
-              <span class="text-5xl font-black text-white rolling-number">{{ Math.round(displayPhysicalStock) }}</span>
-              <span class="text-xs uppercase tracking-widest text-slate-400">Physical Units</span>
+              <span class="text-5xl font-black text-brand-text rolling-number">{{ Math.round(displayPhysicalStock) }}</span>
+              <span class="text-xs uppercase tracking-widest text-gray-500">Physical Units</span>
             </div>
           </div>
 
           <!-- Stock Breakdown -->
           <div class="space-y-3">
             <!-- Sales Stock -->
-            <div class="flex justify-between items-center p-4 bg-slate-800/50 rounded-xl border border-slate-700">
+            <div class="flex justify-between items-center p-4 bg-gray-50 rounded-xl border border-gray-200">
               <div class="sales-stock-display">
-                <p class="text-xs text-slate-400 uppercase font-bold tracking-tight">Sales Stock (Available)</p>
-                <p class="text-3xl font-black text-blue-400">{{ salesStock }}</p>
+                <p class="text-xs text-gray-500 uppercase font-bold tracking-tight">Sales Stock (Available)</p>
+                <p class="text-3xl font-black text-brand-blue">{{ salesStock }}</p>
               </div>
               <div class="text-right">
-                <p class="text-xs text-slate-400 uppercase font-bold tracking-tight">Buffer</p>
+                <p class="text-xs text-gray-500 uppercase font-bold tracking-tight">Buffer</p>
                 <p class="text-2xl font-black text-drift-alert">{{ effectiveBuffer }}</p>
                 <p v-if="effectiveBuffer < bufferStock" class="text-[9px] text-amber-500 italic">Capped (was {{ bufferStock }})</p>
               </div>
@@ -181,15 +183,15 @@
             
             <!-- Reserved Stock + Ship All -->
             <div 
-              class="flex justify-between items-center p-4 rounded-xl border transition-all"
-              :class="reservedStock > 0 ? 'bg-amber-900/30 border-amber-500/50' : 'bg-slate-800/30 border-slate-700/50'"
+              class="reserved-stock-display flex justify-between items-center p-4 rounded-xl border transition-all"
+              :class="reservedStock > 0 ? 'bg-amber-50 border-amber-300' : 'bg-gray-50 border-gray-200'"
             >
               <div>
-                <p class="text-xs text-amber-400 uppercase font-bold tracking-tight flex items-center gap-2">
-                  <span class="w-2 h-2 rounded-full" :class="reservedStock > 0 ? 'bg-amber-400 animate-pulse' : 'bg-slate-600'"></span>
+                <p class="text-xs text-amber-600 uppercase font-bold tracking-tight flex items-center gap-2">
+                  <span class="w-2 h-2 rounded-full" :class="reservedStock > 0 ? 'bg-amber-500 animate-pulse' : 'bg-gray-300'"></span>
                   Reserved (Pending RTS)
                 </p>
-                <p class="text-2xl font-black" :class="reservedStock > 0 ? 'text-amber-400' : 'text-slate-600'">
+                <p class="text-2xl font-black" :class="reservedStock > 0 ? 'text-amber-600' : 'text-gray-400'">
                   {{ reservedStock }}
                 </p>
               </div>
@@ -198,17 +200,17 @@
                 :disabled="reservedStock === 0"
                 class="px-4 py-2 rounded-lg font-bold text-xs uppercase tracking-wider transition-all"
                 :class="reservedStock > 0 
-                  ? 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-lg shadow-emerald-900/50' 
-                  : 'bg-slate-700 text-slate-500 cursor-not-allowed'"
+                  ? 'bg-sync-pulse hover:bg-emerald-400 text-white shadow-lg shadow-emerald-200/50' 
+                  : 'bg-gray-200 text-gray-400 cursor-not-allowed'"
               >
                 Ship All ({{ reservedStock }})
               </button>
             </div>
             
             <!-- Stock Adjustment -->
-            <div class="p-4 bg-slate-900/50 rounded-xl border border-slate-600">
-              <p class="text-xs text-slate-400 uppercase font-bold tracking-tight mb-3 flex items-center gap-2">
-                <span class="w-1.5 h-1.5 bg-slate-400 rounded-full"></span>
+            <div class="p-4 bg-gray-50 rounded-xl border border-gray-300">
+              <p class="text-xs text-gray-500 uppercase font-bold tracking-tight mb-3 flex items-center gap-2">
+                <span class="w-1.5 h-1.5 bg-gray-400 rounded-full"></span>
                 Admin Stock Adjustment
               </p>
               <div class="flex gap-2 items-center">
@@ -216,15 +218,15 @@
                   v-model.number="stockAdjustmentInput"
                   type="number"
                   placeholder="New stock..."
-                  class="flex-grow bg-slate-800 border border-slate-600 rounded-lg px-3 py-2 text-white font-mono text-sm focus:border-blue-500 focus:outline-none"
+                  class="flex-grow bg-white border border-gray-300 rounded-lg px-3 py-2 text-brand-text font-mono text-sm focus:border-brand-blue focus:outline-none focus:ring-1 focus:ring-brand-blue"
                 >
                 <button 
                   @click="adjustStock(stockAdjustmentInput)"
                   :disabled="!stockAdjustmentInput || stockAdjustmentInput < 0"
                   class="px-4 py-2 rounded-lg font-bold text-xs uppercase transition-all"
                   :class="stockAdjustmentInput && stockAdjustmentInput >= 0 
-                    ? 'bg-blue-600 hover:bg-blue-500 text-white' 
-                    : 'bg-slate-700 text-slate-500 cursor-not-allowed'"
+                    ? 'bg-brand-blue hover:bg-blue-600 text-white' 
+                    : 'bg-gray-200 text-gray-400 cursor-not-allowed'"
                 >
                   Apply
                 </button>
@@ -232,30 +234,30 @@
               <div class="flex gap-2 mt-2">
                 <button 
                   @click="adjustStock(physicalStock + 100)"
-                  class="flex-1 px-2 py-1.5 rounded bg-emerald-900/50 border border-emerald-700/50 text-emerald-400 text-[10px] font-bold hover:bg-emerald-800/50 transition-all"
+                  class="flex-1 px-2 py-1.5 rounded bg-emerald-50 border border-emerald-200 text-emerald-600 text-[10px] font-bold hover:bg-emerald-100 transition-all"
                 >
                   +100
                 </button>
                 <button 
                   @click="adjustStock(physicalStock + 500)"
-                  class="flex-1 px-2 py-1.5 rounded bg-emerald-900/50 border border-emerald-700/50 text-emerald-400 text-[10px] font-bold hover:bg-emerald-800/50 transition-all"
+                  class="flex-1 px-2 py-1.5 rounded bg-emerald-50 border border-emerald-200 text-emerald-600 text-[10px] font-bold hover:bg-emerald-100 transition-all"
                 >
                   +500
                 </button>
                 <button 
                   @click="adjustStock(Math.max(0, physicalStock - 100))"
-                  class="flex-1 px-2 py-1.5 rounded bg-red-900/50 border border-red-700/50 text-red-400 text-[10px] font-bold hover:bg-red-800/50 transition-all"
+                  class="flex-1 px-2 py-1.5 rounded bg-red-50 border border-red-200 text-red-500 text-[10px] font-bold hover:bg-red-100 transition-all"
                 >
                   -100
                 </button>
                 <button 
                   @click="adjustStock(1000)"
-                  class="flex-1 px-2 py-1.5 rounded bg-slate-700/50 border border-slate-600/50 text-slate-400 text-[10px] font-bold hover:bg-slate-600/50 transition-all"
+                  class="flex-1 px-2 py-1.5 rounded bg-gray-100 border border-gray-200 text-gray-500 text-[10px] font-bold hover:bg-gray-200 transition-all"
                 >
                   Reset
                 </button>
               </div>
-              <p v-if="stockAdjustmentInput && stockAdjustmentInput !== physicalStock" class="text-[10px] text-blue-400 mt-2 font-mono">
+              <p v-if="stockAdjustmentInput && stockAdjustmentInput !== physicalStock" class="text-[10px] text-brand-blue mt-2 font-mono">
                 Preview: Buffer will become {{ Math.ceil(stockAdjustmentInput * (bufferPercent / 100)) }} ({{ bufferPercent }}% of {{ stockAdjustmentInput }})
               </p>
             </div>
@@ -264,19 +266,7 @@
       </section>
 
       <!-- Right Panel: Channels -->
-      <section class="col-span-8 relative">
-        <!-- Data Packet Layer -->
-        <div class="absolute inset-0 pointer-events-none z-10 overflow-visible" id="packet-layer">
-          <div 
-            v-for="p in packetPool" 
-            :key="p.id" 
-            :id="'packet-' + p.id"
-            class="absolute w-3 h-3 bg-blue-400 rounded-full shadow-[0_0_10px_#60a5fa] opacity-0"
-          ></div>
-          <!-- BOM Connection Lines -->
-          <svg class="absolute inset-0 w-full h-full" id="bom-svg"></svg>
-        </div>
-
+      <section class="col-span-8">
         <div class="grid grid-cols-2 gap-4">
           <channel-card 
             v-for="channel in channels" 
@@ -301,12 +291,12 @@
     <!-- Log Feed -->
     <footer class="h-48 glass-card mt-8 p-4 overflow-hidden flex flex-col">
       <div class="flex justify-between items-center mb-2">
-        <h3 class="text-xs font-bold uppercase tracking-widest text-slate-500">Live Engine Log</h3>
-        <span class="text-[10px] font-mono text-slate-600">v1.0.0-PRO</span>
+        <h3 class="text-xs font-bold uppercase tracking-widest text-gray-500">Live Engine Log</h3>
+        <span class="text-[10px] font-mono text-gray-400">v1.0.0-PRO</span>
       </div>
       <div class="flex-grow overflow-y-auto font-mono text-sm space-y-1" ref="logContainer">
-        <div v-for="(log, index) in logs" :key="index" class="text-slate-400">
-          <span class="text-slate-600">[{{ log.time }}]</span> {{ log.message }}
+        <div v-for="(log, index) in logs" :key="index" class="text-gray-600">
+          <span class="text-gray-400">[{{ log.time }}]</span> {{ log.message }}
         </div>
       </div>
     </footer>
@@ -375,7 +365,7 @@ export default {
       handler(newVal) {
         // Recalculate fixed buffer when slider changes
         this.bufferStock = Math.ceil(this.physicalStock * (newVal / 100));
-        this.addLog(`Buffer recalculated: ${this.bufferStock} units (${newVal}% of ${this.physicalStock})`);
+        this.addLog(`คำนวณ Buffer ใหม่: ${this.bufferStock} หน่วย (${newVal}% ของ ${this.physicalStock})`);
       }
     },
     salesStock: {
@@ -391,19 +381,15 @@ export default {
       this.logs.unshift({ time, message });
       if (this.logs.length > 50) this.logs.pop();
     },
-    toggleBOM() {
-      this.showBOM = !this.showBOM;
-      this.addLog(`${this.showBOM ? 'Enabled' : 'Disabled'} BOM Relationship mapping.`);
-    },
     adjustStock(newStock) {
       if (newStock === null || newStock === undefined || newStock < 0) return;
       
       const oldStock = this.physicalStock;
       const diff = newStock - oldStock;
-      const direction = diff > 0 ? 'RECEIVING' : diff < 0 ? 'ADJUSTMENT' : 'NO CHANGE';
+      const direction = diff > 0 ? 'รับสินค้าเข้า' : diff < 0 ? 'ปรับลดสต็อก' : 'ไม่เปลี่ยนแปลง';
       
       if (diff === 0) {
-        this.addLog(`Stock adjustment: No change (already at ${newStock})`);
+        this.addLog(`ปรับสต็อก: ไม่มีการเปลี่ยนแปลง (อยู่ที่ ${newStock} อยู่แล้ว)`);
         this.stockAdjustmentInput = null;
         return;
       }
@@ -415,7 +401,7 @@ export default {
       const oldBuffer = this.bufferStock;
       this.bufferStock = Math.ceil(newStock * (this.bufferPercent / 100));
       
-      this.addLog(`ADMIN ${direction}: Physical ${oldStock} → ${newStock} (${diff > 0 ? '+' : ''}${diff}). Buffer: ${oldBuffer} → ${this.bufferStock}`);
+      this.addLog(`แอดมินปรับสต็อก (${direction}): Physical Stock ${oldStock} → ${newStock} (${diff > 0 ? '+' : ''}${diff}). Buffer: ${oldBuffer} → ${this.bufferStock}`);
       
       // Clear input
       this.stockAdjustmentInput = null;
@@ -479,12 +465,12 @@ export default {
         this.previewStrategy = strategy;
       }
       this.updateIdeals();
-      this.addLog(`Ghost Preview: Visualizing '${strategy.toUpperCase()}' strategy moves.`);
+      this.addLog(`ดูตัวอย่าง: กำลังแสดงผลกลยุทธ์ '${strategy.toUpperCase()}'`);
     },
     async applyStrategy() {
       if (!this.previewStrategy) return;
       this.isSyncing = true;
-      this.addLog(`Applying System-Wide '${this.previewStrategy.toUpperCase()}' Strategy...`);
+      this.addLog(`กำลังใช้กลยุทธ์ '${this.previewStrategy.toUpperCase()}' ทั้งระบบ...`);
       
       await new Promise(resolve => setTimeout(resolve, 1500));
       
@@ -524,12 +510,12 @@ export default {
     toggleManual(channelId) {
       const ch = this.channels.find(c => c.id === channelId);
       ch.isManual = !ch.isManual;
-      this.addLog(`${ch.name}: ${ch.isManual ? 'Manual Override Enabled' : 'Global Sync Resumed'}.`);
+      this.addLog(`${ch.name}: ${ch.isManual ? 'เปิดโหมดควบคุมเอง' : 'กลับสู่การซิงค์อัตโนมัติ'}`);
     },
     handleApiStatus({ id, status }) {
       const ch = this.channels.find(c => c.id === id);
       ch.apiFailing = status;
-      this.addLog(`${ch.name}: ${status ? 'API Connection Failed (Simulated)' : 'API Connection Restored'}.`);
+      this.addLog(`${ch.name}: ${status ? 'การเชื่อมต่อ API ล้มเหลว (จำลอง)' : 'การเชื่อมต่อ API กลับมาปกติ'}`);
     },
     handleManualStockChange({ id, value }) {
       const ch = this.channels.find(c => c.id === id);
@@ -541,27 +527,17 @@ export default {
       
       // Check if enough available stock (physical - buffer - reserved)
       if (this.salesStock < factor) {
-        this.addLog(`ERROR: No available stock! Sales Stock: ${this.salesStock}, Required: ${factor}`);
+        this.addLog(`ข้อผิดพลาด: สต็อกไม่พอ! สต็อกพร้อมขาย: ${this.salesStock}, ต้องการ: ${factor}`);
         return;
       }
 
       // Stage 1: Reserve units (don't touch physical yet)
       this.reservedStock += factor;
-      this.addLog(`ORDER_IN: ${this.activeSku.name} sale on ${channel.name}. Reserved: +${factor} → Total Reserved: ${this.reservedStock}`);
-      gsap.to(".physical-tank-main", { x: 5, yoyo: true, repeat: 3, duration: 0.05 });
+      this.addLog(`ออเดอร์เข้า: ขาย ${this.activeSku.name} ผ่าน ${channel.name} จอง: +${factor} → รวมจอง: ${this.reservedStock}`);
+      gsap.to(".sales-stock-display", { x: 5, yoyo: true, repeat: 3, duration: 0.05 });
 
       // Stage 2: Data Packet (Visual Flow)
       this.showDataPacket(channelId);
-
-      // Stage 2.5: BOM Visual Connection
-      if (this.showBOM) {
-         this.animateBOMLine(channelId);
-         this.channels.forEach(ch => {
-           if (ch.id !== channelId) {
-             gsap.to(`#card-${ch.id}`, { scale: 1.03, backgroundColor: 'rgba(96, 165, 250, 0.15)', yoyo: true, repeat: 1, duration: 0.15 });
-           }
-         });
-      }
 
       // Stage 3: Marketplace Drop (Delayed - simulate API travel time)
       // This creates the "Desync" period where Drift is visible
@@ -582,21 +558,21 @@ export default {
 
         if (pctDrift > (this.pctThreshold / 100) || absDrift >= this.absThreshold) {
           syncRequired = true;
-          triggerReason = `${ch.name} singles drift (${absDrift}u / ${Math.round(pctDrift * 100)}%) exceeded ${this.pctThreshold}% / ${this.absThreshold}u gatekeeper.`;
+          triggerReason = `${ch.name} ค่าเบี่ยงเบน (${absDrift} หน่วย / ${Math.round(pctDrift * 100)}%) เกินเกณฑ์ ${this.pctThreshold}% / ${this.absThreshold} หน่วย`;
           break; 
         }
       }
       
       if (syncRequired) {
-        this.addLog(`Sync Triggered: ${triggerReason}`);
+        this.addLog(`เริ่มซิงค์: ${triggerReason}`);
         this.performMasterSync();
       } else {
-        this.addLog(`Drift Ignored: Overall Singles drift is within safe bounds.`);
+        this.addLog(`ไม่ต้องซิงค์: ค่าเบี่ยงเบนอยู่ในเกณฑ์ปลอดภัย`);
       }
     },
     async shipAll() {
       if (this.reservedStock === 0) {
-        this.addLog(`No pending orders to ship.`);
+        this.addLog(`ไม่มีออเดอร์ที่รอจัดส่ง`);
         return;
       }
       
@@ -604,15 +580,16 @@ export default {
       
       // Safety check: can't ship more than physical stock
       if (toShip > this.physicalStock) {
-        this.addLog(`ERROR: Cannot ship ${toShip} units. Only ${this.physicalStock} physical units available!`);
+        this.addLog(`ข้อผิดพลาด: ไม่สามารถจัดส่ง ${toShip} หน่วย มี Physical Stock เพียง ${this.physicalStock} หน่วย!`);
         return;
       }
       
       this.isSyncing = true;
-      this.addLog(`READY TO SHIP: Processing ${toShip} units...`);
+      this.addLog(`พร้อมจัดส่ง: กำลังดำเนินการ ${toShip} หน่วย...`);
       
-      // Visual pulse
-      gsap.to(".physical-tank-main", { scale: 0.98, yoyo: true, repeat: 1, duration: 0.2 });
+      // Visual shake on physical tank and reserved stock
+      gsap.to(".physical-tank-main", { x: 5, yoyo: true, repeat: 3, duration: 0.05 });
+      gsap.to(".reserved-stock-display", { x: 5, yoyo: true, repeat: 3, duration: 0.05 });
       
       await new Promise(resolve => setTimeout(resolve, 1000));
       
@@ -621,7 +598,7 @@ export default {
       this.reservedStock = 0;
       
       this.isSyncing = false;
-      this.addLog(`SHIPPED: ${toShip} units left warehouse. Physical: ${this.physicalStock}, Reserved: ${this.reservedStock}`);
+      this.addLog(`จัดส่งแล้ว: ${toShip} หน่วย ออกจากคลัง Physical Stock: ${this.physicalStock}, จอง: ${this.reservedStock}`);
     },
     showDataPacket(targetId) {
       const packet = this.packetPool.find(p => !p.active);
@@ -649,7 +626,7 @@ export default {
 
       const ch = this.channels.find(c => c.id === targetId);
 
-      gsap.set(packetEl, { x: startX, y: startY, opacity: 1, scale: 1, backgroundColor: '#60a5fa' });
+      gsap.set(packetEl, { x: startX, y: startY, opacity: 1, scale: 1, backgroundColor: '#0088FF' });
       
       const tl = gsap.timeline({
         onComplete: () => {
@@ -672,7 +649,7 @@ export default {
           backgroundColor: "#f43f5e",
           duration: 0.3
         });
-        this.addLog(`Sync Failed for ${ch.name} (Timeout). Retrying in 2s...`);
+        this.addLog(`ซิงค์ล้มเหลว: ${ch.name} (หมดเวลา) กำลังลองใหม่...`);
       } else {
         tl.to(packetEl, {
           x: endX,
@@ -686,45 +663,6 @@ export default {
           duration: 0.2
         });
       }
-    },
-    animateBOMLine(targetId) {
-      const svg = document.getElementById('bom-svg');
-      const targetEl = document.getElementById(`card-${targetId}`);
-      const tankEl = document.querySelector('.physical-tank-main');
-      const layerEl = document.getElementById('packet-layer');
-
-      if (!svg || !targetEl || !tankEl || !layerEl) return;
-
-      const layerRect = layerEl.getBoundingClientRect();
-      const targetRect = targetEl.getBoundingClientRect();
-      const tankRect = tankEl.getBoundingClientRect();
-
-      const x1 = targetRect.left - layerRect.left + targetRect.width / 2;
-      const y1 = targetRect.top - layerRect.top + targetRect.height / 2;
-      const x2 = tankRect.left - layerRect.left + tankRect.width / 2;
-      const y2 = tankRect.top - layerRect.top + tankRect.height / 2;
-
-      const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
-      path.setAttribute("d", `M ${x1} ${y1} L ${x2} ${y2}`);
-      path.setAttribute("stroke", "#818cf8");
-      path.setAttribute("stroke-width", "2");
-      path.setAttribute("stroke-dasharray", "10,5");
-      path.setAttribute("fill", "none");
-      path.style.filter = "drop-shadow(0 0 5px #818cf8)";
-      
-      svg.appendChild(path);
-
-      gsap.fromTo(path, 
-        { strokeDashoffset: 50, opacity: 0 }, 
-        { strokeDashoffset: 0, opacity: 1, duration: 0.3, ease: "power1.out" }
-      );
-
-      gsap.to(path, {
-        opacity: 0,
-        duration: 0.5,
-        delay: 0.5,
-        onComplete: () => path.remove()
-      });
     },
     async performMasterSync() {
       if (this.isSyncing) return;
@@ -746,7 +684,7 @@ export default {
       });
       
       this.isSyncing = false;
-      this.addLog("Master Sync Complete: All healthy channels reconciled to Ideal Stock.");
+      this.addLog("ซิงค์สำเร็จ: ทุกช่องทางที่พร้อมใช้งานได้ปรับสต็อกตามเป้าหมายแล้ว");
     }
   },
   mounted() {
@@ -761,7 +699,7 @@ export default {
       ch.internal = ch.ideal;
     });
     
-    this.addLog("Inventory Engine Initialized. Monitoring physical stock [1,000 units].");
+    this.addLog("ระบบจัดการสต็อกพร้อมทำงาน กำลังติดตาม Physical Stock [1,000 หน่วย]");
   }
 };
 </script>
