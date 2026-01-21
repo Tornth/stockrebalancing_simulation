@@ -67,6 +67,28 @@
       </div>
     </header>
 
+    <!-- Guide/Explainer Section (moved from footer) -->
+    <div class="mb-6 glass-card p-4 overflow-hidden">
+      <div class="flex justify-between items-center mb-2">
+        <h3 class="text-sm font-bold text-brand-text flex items-center gap-2">
+          <span class="text-lg">📋</span>
+          คำอธิบายการทำงาน
+        </h3>
+        <span class="text-[10px] font-mono text-gray-400">Live Log</span>
+      </div>
+      <div class="h-20 overflow-y-auto text-sm space-y-1" ref="logContainer">
+        <div 
+          v-for="(log, index) in logs" 
+          :key="index" 
+          class="flex gap-2"
+          :class="getLogClass(log.type)"
+        >
+          <span class="text-gray-400 flex-shrink-0">[{{ log.time }}]</span>
+          <span>{{ log.message }}</span>
+        </div>
+      </div>
+    </div>
+
     <!-- Tuning Panel -->
     <transition name="slide-fade">
       <div v-if="showTuning" class="mb-8 glass-card border-amber-300 p-6 grid grid-cols-3 gap-8">
@@ -287,19 +309,6 @@
         </div>
       </section>
     </main>
-
-    <!-- Log Feed -->
-    <footer class="h-48 glass-card mt-8 p-4 overflow-hidden flex flex-col">
-      <div class="flex justify-between items-center mb-2">
-        <h3 class="text-xs font-bold uppercase tracking-widest text-gray-500">Live Engine Log</h3>
-        <span class="text-[10px] font-mono text-gray-400">v1.0.0-PRO</span>
-      </div>
-      <div class="flex-grow overflow-y-auto font-mono text-sm space-y-1" ref="logContainer">
-        <div v-for="(log, index) in logs" :key="index" class="text-gray-600">
-          <span class="text-gray-400">[{{ log.time }}]</span> {{ log.message }}
-        </div>
-      </div>
-    </footer>
   </div>
 </template>
 
@@ -375,11 +384,20 @@ export default {
     }
   },
   methods: {
-    addLog(message) {
+    addLog(message, type = 'info') {
       const now = new Date();
       const time = now.toTimeString().split(' ')[0];
-      this.logs.unshift({ time, message });
+      this.logs.unshift({ time, message, type });
       if (this.logs.length > 50) this.logs.pop();
+    },
+    getLogClass(type) {
+      switch (type) {
+        case 'success': return 'text-sync-pulse';
+        case 'warning': return 'text-amber-500';
+        case 'hint': return 'text-gray-500 italic';
+        case 'info':
+        default: return 'text-brand-blue';
+      }
     },
     adjustStock(newStock) {
       if (newStock === null || newStock === undefined || newStock < 0) return;
@@ -527,7 +545,7 @@ export default {
       
       // Check if enough available stock (physical - buffer - reserved)
       if (this.salesStock < factor) {
-        this.addLog(`ข้อผิดพลาด: สต็อกไม่พอ! สต็อกพร้อมขาย: ${this.salesStock}, ต้องการ: ${factor}`);
+        this.addLog(`ข้อผิดพลาด: สต็อกไม่พอ! สต็อกพร้อมขาย: ${this.salesStock}, ต้องการ: ${factor}`, 'warning');
         return;
       }
 
@@ -580,7 +598,7 @@ export default {
       
       // Safety check: can't ship more than physical stock
       if (toShip > this.physicalStock) {
-        this.addLog(`ข้อผิดพลาด: ไม่สามารถจัดส่ง ${toShip} หน่วย มี Physical Stock เพียง ${this.physicalStock} หน่วย!`);
+        this.addLog(`ข้อผิดพลาด: ไม่สามารถจัดส่ง ${toShip} หน่วย มี Physical Stock เพียง ${this.physicalStock} หน่วย!`, 'warning');
         return;
       }
       
@@ -598,7 +616,7 @@ export default {
       this.reservedStock = 0;
       
       this.isSyncing = false;
-      this.addLog(`จัดส่งแล้ว: ${toShip} หน่วย ออกจากคลัง Physical Stock: ${this.physicalStock}, จอง: ${this.reservedStock}`);
+      this.addLog(`จัดส่งแล้ว: ${toShip} หน่วย ออกจากคลัง Physical Stock: ${this.physicalStock}, จอง: ${this.reservedStock}`, 'success');
     },
     showDataPacket(targetId) {
       const packet = this.packetPool.find(p => !p.active);
@@ -649,7 +667,7 @@ export default {
           backgroundColor: "#f43f5e",
           duration: 0.3
         });
-        this.addLog(`ซิงค์ล้มเหลว: ${ch.name} (หมดเวลา) กำลังลองใหม่...`);
+        this.addLog(`ซิงค์ล้มเหลว: ${ch.name} (หมดเวลา) กำลังลองใหม่...`, 'warning');
       } else {
         tl.to(packetEl, {
           x: endX,
@@ -684,7 +702,7 @@ export default {
       });
       
       this.isSyncing = false;
-      this.addLog("ซิงค์สำเร็จ: ทุกช่องทางที่พร้อมใช้งานได้ปรับสต็อกตามเป้าหมายแล้ว");
+      this.addLog("ซิงค์สำเร็จ: ทุกช่องทางที่พร้อมใช้งานได้ปรับสต็อกตามเป้าหมายแล้ว", 'success');
     }
   },
   mounted() {
@@ -699,7 +717,12 @@ export default {
       ch.internal = ch.ideal;
     });
     
-    this.addLog("ระบบจัดการสต็อกพร้อมทำงาน กำลังติดตาม Physical Stock [1,000 หน่วย]");
+    // Welcome hints (added in reverse order so first appears at top)
+    this.addLog("💡 ลอง: กด 'Simulate API Fail' แล้วดูว่าระบบจัดการอย่างไร", 'hint');
+    this.addLog("💡 ลอง: เปิด Engine Tuning ปรับ Buffer % แล้วดูการเปลี่ยนแปลง", 'hint');
+    this.addLog("💡 ลอง: กดเลือก Strategy แล้วกด Confirm เพื่อเปลี่ยนวิธีกระจายสต็อก", 'hint');
+    this.addLog("💡 ลอง: กด 'Sell unit' จากนั้นกด 'Ship All' เพื่อจำลองการขายและจัดส่ง", 'hint');
+    this.addLog("ระบบพร้อมทำงาน กำลังติดตาม Physical Stock [1,000 หน่วย]", 'success');
   }
 };
 </script>
