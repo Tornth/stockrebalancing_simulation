@@ -64,7 +64,7 @@
         <div class="flex justify-between items-center mb-1">
           <p class="text-[10px] text-gray-500 uppercase font-bold">Marketplace ({{ unitLabel }})</p>
           <span v-if="isOverCapacity" class="text-[8px] text-red-500 font-black animate-pulse">
-            SHORTFALL: {{ channel.internal - salesStock }} SINGLES
+            OVER IDEAL: +{{ channel.internal - channel.ideal }} SINGLES
           </span>
         </div>
         <input 
@@ -164,9 +164,9 @@ export default {
       return Math.floor(this.channel.internal / this.skuFactor);
     },
     isOverCapacity() {
-      // BOM Hardening: Physical After as absolute truth
-      // A channel's singles cannot exceed the available singles in the tank
-      return this.channel.internal > this.salesStock;
+      // A channel showing more than its ideal allocation is a true shortfall risk
+      // (comparing to ideal is more accurate than salesStock which changes during order flow)
+      return this.channel.internal > this.channel.ideal && this.channel.ideal > 0;
     },
     // Use raw singles for accurate drift (matches App.vue gatekeeper logic)
     rawDrift() {

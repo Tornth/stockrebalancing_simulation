@@ -91,7 +91,7 @@
 
     <!-- Tuning Panel -->
     <transition name="slide-fade">
-      <div v-if="showTuning" class="mb-8 glass-card border-amber-300 p-6 grid grid-cols-3 gap-8">
+      <div v-if="showTuning" class="mb-8 glass-card border-amber-300 p-6 grid grid-cols-4 gap-6">
         <div class="space-y-4">
           <h3 class="text-xs font-black text-amber-600 uppercase flex items-center gap-2">
             <span class="w-1.5 h-1.5 bg-amber-500 rounded-full"></span>
@@ -138,6 +138,31 @@
             <input type="range" v-model.number="absThreshold" min="1" max="10" step="1" class="w-full accent-pink-500" :disabled="!absThresholdEnabled" :style="{ filter: absThresholdEnabled ? 'none' : 'grayscale(100%)' }">
           </div>
           <p class="text-[9px] text-gray-400 italic" :class="{ 'opacity-30': !absThresholdEnabled }">Unit difference threshold for instant reconciliation.</p>
+        </div>
+
+        <!-- Cutoff Mode -->
+        <div class="space-y-4">
+          <h3 class="text-xs font-black text-emerald-600 uppercase flex items-center gap-2">
+            <label class="flex items-center gap-2 cursor-pointer">
+              <input type="checkbox" v-model="cutoffEnabled" class="w-4 h-4 accent-emerald-500 rounded">
+              <span class="w-1.5 h-1.5 bg-emerald-500 rounded-full" :class="{ 'opacity-30': !cutoffEnabled }"></span>
+              <span :class="{ 'opacity-50': !cutoffEnabled }">Low Stock Cutoff</span>
+            </label>
+          </h3>
+          <div class="space-y-2" :class="{ 'opacity-30': !cutoffEnabled }">
+            <div class="flex justify-between text-[11px] font-mono">
+              <span class="text-gray-500">Cutoff Threshold</span>
+              <span class="text-emerald-600 font-bold">{{ cutoffThreshold }} units</span>
+            </div>
+            <input type="range" v-model.number="cutoffThreshold" min="5" max="100" step="5" class="w-full accent-emerald-500" :disabled="!cutoffEnabled" :style="{ filter: cutoffEnabled ? 'none' : 'grayscale(100%)' }">
+            <div class="flex justify-between text-[11px] font-mono mt-2">
+              <span class="text-gray-500">Priority Channel</span>
+            </div>
+            <select v-model="cutoffPriorityChannel" class="w-full text-xs bg-white border border-gray-300 rounded-lg px-2 py-1.5 text-emerald-600 font-bold focus:border-emerald-500 focus:outline-none" :disabled="!cutoffEnabled">
+              <option v-for="ch in channels" :key="ch.id" :value="ch.id">{{ ch.name }}</option>
+            </select>
+          </div>
+          <p class="text-[9px] text-gray-400 italic" :class="{ 'opacity-30': !cutoffEnabled }">When stock falls below threshold, consolidate to one channel.</p>
         </div>
       </div>
     </transition>
@@ -333,6 +358,9 @@ export default {
       pctThreshold: 5,
       absThreshold: 2,
       absThresholdEnabled: true,
+      cutoffEnabled: false,
+      cutoffThreshold: 20,
+      cutoffPriorityChannel: 'shopee',
       isSyncing: false,
       showBOM: false,
       showTuning: false,
@@ -439,6 +467,32 @@ export default {
     },
     updateIdeals() {
       const strategy = this.previewStrategy || this.selectedStrategy;
+      
+      // CUTOFF MODE: When enabled and stock is below threshold, consolidate all to priority channel
+      const inCutoffMode = this.cutoffEnabled && this.salesStock > 0 && this.salesStock <= this.cutoffThreshold;
+      if (inCutoffMode) {
+        const priorityChannel = this.channels.find(ch => ch.id === this.cutoffPriorityChannel);
+        const wasInCutoffMode = this._wasInCutoffMode;
+        this._wasInCutoffMode = true;
+        
+        this.channels.forEach(ch => {
+          if (ch.id === this.cutoffPriorityChannel) {
+            ch.ideal = this.salesStock;
+            ch.ghostValue = this.previewStrategy ? this.salesStock : null;
+          } else {
+            ch.ideal = 0;
+            ch.ghostValue = this.previewStrategy ? 0 : null;
+          }
+        });
+        
+        // Only log once when entering cutoff mode
+        if (!wasInCutoffMode) {
+          this.addLog(`โหมด Cutoff: สต็อกต่ำ (${this.salesStock} ≤ ${this.cutoffThreshold}) รวมสต็อกทั้งหมดไว้ที่ ${priorityChannel?.name || 'Unknown'}`, 'warning');
+        }
+        return;
+      } else {
+        this._wasInCutoffMode = false;
+      }
       
       if (strategy === 'mirror') {
         // Mirror: All channels get full salesStock
@@ -556,6 +610,12 @@ export default {
       // Check if enough available stock (physical - buffer - reserved)
       if (this.salesStock < factor) {
         this.addLog(`ข้อผิดพลาด: สต็อกไม่พอ! สต็อกพร้อมขาย: ${this.salesStock}, ต้องการ: ${factor}`, 'warning');
+        return;
+      }
+      
+      // Check if THIS channel has enough stock to sell
+      if (channel.internal < factor) {
+        this.addLog(`ข้อผิดพลาด: ${channel.name} ไม่มีสต็อกพอขาย! มี: ${channel.internal}, ต้องการ: ${factor}`, 'warning');
         return;
       }
 
