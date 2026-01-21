@@ -117,24 +117,27 @@
               <span class="text-gray-500">Drift Threshold</span>
               <span class="text-brand-blue font-bold">{{ pctThreshold }}%</span>
             </div>
-            <input type="range" v-model.number="pctThreshold" min="1" max="15" step="1" class="w-full accent-blue-500">
+            <input type="range" v-model.number="pctThreshold" min="1" max="45" step="1" class="w-full accent-blue-500">
           </div>
           <p class="text-[9px] text-gray-400 italic">Percentage difference before triggering a global sync.</p>
         </div>
 
         <div class="space-y-4">
           <h3 class="text-xs font-black text-pink-500 uppercase flex items-center gap-2">
-            <span class="w-1.5 h-1.5 bg-pink-500 rounded-full"></span>
-            Sync Sensitivity (Abs)
+            <label class="flex items-center gap-2 cursor-pointer">
+              <input type="checkbox" v-model="absThresholdEnabled" class="w-4 h-4 accent-pink-500 rounded">
+              <span class="w-1.5 h-1.5 bg-pink-500 rounded-full" :class="{ 'opacity-30': !absThresholdEnabled }"></span>
+              <span :class="{ 'opacity-50': !absThresholdEnabled }">Sync Sensitivity (Abs)</span>
+            </label>
           </h3>
-          <div class="space-y-1">
+          <div class="space-y-1" :class="{ 'opacity-30': !absThresholdEnabled }">
             <div class="flex justify-between text-[11px] font-mono">
               <span class="text-gray-500">Absolute Gap</span>
               <span class="text-pink-500 font-bold">{{ absThreshold }} units</span>
             </div>
-            <input type="range" v-model.number="absThreshold" min="1" max="10" step="1" class="w-full accent-pink-500">
+            <input type="range" v-model.number="absThreshold" min="1" max="10" step="1" class="w-full accent-pink-500" :disabled="!absThresholdEnabled" :style="{ filter: absThresholdEnabled ? 'none' : 'grayscale(100%)' }">
           </div>
-          <p class="text-[9px] text-gray-400 italic">Unit difference threshold for instant reconciliation.</p>
+          <p class="text-[9px] text-gray-400 italic" :class="{ 'opacity-30': !absThresholdEnabled }">Unit difference threshold for instant reconciliation.</p>
         </div>
       </div>
     </transition>
@@ -329,6 +332,7 @@ export default {
       reservedStock: 0, // Units held for pending orders (waiting for RTS)
       pctThreshold: 5,
       absThreshold: 2,
+      absThresholdEnabled: true,
       isSyncing: false,
       showBOM: false,
       showTuning: false,
@@ -426,7 +430,11 @@ export default {
       // Clear input
       this.stockAdjustmentInput = null;
       
-      // Trigger sync to update ideals
+      // IMPORTANT: Force recalculate ideals BEFORE syncing
+      // (Watcher is async, but we need ideals updated now)
+      this.updateIdeals();
+      
+      // Trigger sync to update channel internals to new ideals
       this.performMasterSync();
     },
     updateIdeals() {
@@ -576,7 +584,7 @@ export default {
         const absDrift = Math.abs(ch.ideal - ch.internal);
         const pctDrift = ch.ideal > 0 ? (absDrift / ch.ideal) : 0;
 
-        if (pctDrift > (this.pctThreshold / 100) || absDrift >= this.absThreshold) {
+        if (pctDrift > (this.pctThreshold / 100) || (this.absThresholdEnabled && absDrift >= this.absThreshold)) {
           syncRequired = true;
           triggerReason = `${ch.name} ค่าเบี่ยงเบน (${absDrift} หน่วย / ${Math.round(pctDrift * 100)}%) เกินเกณฑ์ ${this.pctThreshold}% / ${this.absThreshold} หน่วย`;
           break; 
