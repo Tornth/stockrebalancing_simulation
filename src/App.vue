@@ -146,8 +146,10 @@
           v-for="p in packetPool" 
           :key="p.id" 
           :id="'packet-' + p.id"
-          class="absolute w-3 h-3 bg-brand-blue rounded-full shadow-[0_0_10px_rgba(0,136,255,0.5)] opacity-0"
-        ></div>
+          class="absolute w-12 h-12 bg-brand-blue rounded-full shadow-[0_0_20px_rgba(0,136,255,0.7)] opacity-0 flex items-center justify-center"
+        >
+          <span class="text-white font-bold text-lg"></span>
+        </div>
       </div>
 
       <!-- Left Panel: The Brain -->
@@ -643,8 +645,16 @@ export default {
       const endY = targetRect.top - layerRect.top + targetRect.height / 2;
 
       const ch = this.channels.find(c => c.id === targetId);
+      const factor = this.activeSku.factor;
 
-      gsap.set(packetEl, { x: startX, y: startY, opacity: 1, scale: 1, backgroundColor: '#0088FF' });
+      // Set the quantity text inside the packet
+      const spanEl = packetEl.querySelector('span');
+      if (spanEl) spanEl.textContent = factor;
+
+      // Scale packet size based on SKU factor: 1 = 1x, 6 = 1.5x, 12 = 2x
+      const packetScale = factor === 1 ? 1 : (factor === 6 ? 1.5 : 2);
+      const offset = 24 * packetScale; // Center offset based on scaled size
+      gsap.set(packetEl, { x: startX - offset, y: startY - offset, opacity: 1, scale: packetScale, backgroundColor: '#0088FF' });
       
       const tl = gsap.timeline({
         onComplete: () => {
@@ -670,8 +680,8 @@ export default {
         this.addLog(`ซิงค์ล้มเหลว: ${ch.name} (หมดเวลา) กำลังลองใหม่...`, 'warning');
       } else {
         tl.to(packetEl, {
-          x: endX,
-          y: endY,
+          x: endX - 16,
+          y: endY - 16,
           duration: 0.8,
           ease: "power2.inOut"
         })
