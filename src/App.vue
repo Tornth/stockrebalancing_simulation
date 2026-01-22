@@ -35,7 +35,7 @@
             <div class="group relative inline-block">
               <span class="cursor-help inline-flex items-center justify-center w-4 h-4 rounded-full bg-blue-50 text-brand-blue text-[10px] font-bold">?</span>
               <div class="pointer-events-none absolute top-full left-0 mt-2 w-72 p-4 bg-white border border-gray-200 text-slate-600 text-[13px] font-normal normal-case rounded-xl opacity-0 group-hover:opacity-100 transition-opacity z-50 shadow-xl leading-relaxed">
-                <p class="font-bold mb-2 border-b border-gray-100 pb-1 text-brand-blue">วิธีกระจายสต็อก (Strategies)</p>
+                <p class="font-bold mb-2 border-b border-gray-100 pb-1 text-brand-blue">วิธีกระจายสต็อก</p>
                 
                 <div class="space-y-3">
                   <div>
@@ -48,7 +48,7 @@
                   </div>
                   <div>
                     <p class="font-bold text-slate-800">3. Mirror (แสดงสต็อกเต็มจำนวน)</p>
-                    <p>แสดงสต็อกที่มีทั้งหมดบนทุกช่องทางพร้อมกัน (เช่น มี 10 จะแสดง 10 ทุกที่) เพื่อเพิ่มโอกาสการขายสูงสุด แต่มีความนิยมเสี่ยง Oversell สูง</p>
+                    <p>แสดงสต็อกที่มีทั้งหมดบนทุกช่องทางพร้อมกัน (เช่น มี 10 จะแสดง 10 ทุกที่) เพื่อเพิ่มโอกาสการขายสูงสุด แต่มีความเสี่ยง Oversell สูง</p>
                   </div>
                 </div>
                 
