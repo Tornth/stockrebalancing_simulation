@@ -643,7 +643,7 @@ export default {
     },
     rebalanceWeights({ id, value }) {
       const masterId = id;
-      const newValue = parseFloat(value);
+      const newValue = Math.round(parseFloat(value));
       const masterChannel = this.channels.find(c => c.id === masterId);
       const oldValue = masterChannel.weight;
       const delta = newValue - oldValue;
@@ -654,17 +654,21 @@ export default {
       if (sumOthers > 0) {
         otherChannels.forEach(c => {
           const reduction = delta * (c.weight / sumOthers);
-          c.weight = Math.max(0, c.weight - reduction);
+          c.weight = Math.max(0, Math.round(c.weight - reduction));
         });
       }
 
       masterChannel.weight = newValue;
       
-      const total = this.channels.reduce((acc, c) => acc + c.weight, 0);
+      // Cleanup to ensure exactly 100% with no decimals
+      let total = this.channels.reduce((acc, c) => acc + Math.round(c.weight), 0);
+      this.channels.forEach(c => c.weight = Math.round(c.weight));
+
       const diff = 100 - total;
-      if (Math.abs(diff) > 0.001) {
-        const fallback = otherChannels.find(c => c.weight > 0) || otherChannels[0];
-        if (fallback) fallback.weight += diff;
+      if (diff !== 0) {
+        // Find a valid channel to absorb the rounding difference
+        const target = otherChannels.find(c => c.weight > 0) || otherChannels[0] || masterChannel;
+        target.weight = Math.max(0, target.weight + diff);
       }
       
       this.updateIdeals();

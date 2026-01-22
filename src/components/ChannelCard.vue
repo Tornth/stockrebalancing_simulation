@@ -86,7 +86,7 @@
       <div class="space-y-1" :class="{ 'opacity-30 grayscale cursor-not-allowed': !isSlidersActive }">
         <div class="flex justify-between text-[11px] font-bold text-gray-500">
           <span>WEIGHT DISTRIBUTION</span>
-          <span class="text-brand-blue">{{ channel.weight.toFixed(1) }}%</span>
+          <span class="text-brand-blue">{{ channel.weight.toFixed(0) }}%</span>
         </div>
         <input 
           type="range" 
@@ -94,7 +94,7 @@
           :disabled="!isSlidersActive"
           min="0" 
           max="100"
-          step="0.1"
+          step="1"
           @input="$emit('weight-change', { id: channel.id, value: $event.target.value })"
           class="w-full h-1 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-500"
         >
