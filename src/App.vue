@@ -70,10 +70,22 @@
     <!-- Tuning Panel -->
     <transition name="slide-fade">
       <div v-if="showTuning" class="mb-8 glass-card border-amber-300 p-6 grid grid-cols-4 gap-6">
+        <!-- Insurance Buffer -->
         <div class="space-y-4">
           <h3 class="text-xs font-black text-amber-600 uppercase flex items-center gap-2">
             <span class="w-1.5 h-1.5 bg-amber-500 rounded-full"></span>
             Safety Guardrails
+            <!-- Tooltip -->
+            <div class="group relative inline-block">
+              <span class="cursor-help inline-flex items-center justify-center w-4 h-4 rounded-full bg-amber-100 text-amber-600 text-[10px] font-bold">?</span>
+              <div class="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 p-3 bg-slate-800 text-white text-[11px] font-normal normal-case rounded-lg opacity-0 group-hover:opacity-100 transition-opacity z-50 shadow-xl leading-relaxed">
+                <p class="font-bold mb-1 border-b border-slate-700 pb-1">สำรองสต็อกเพื่อความปลอดภัย</p>
+                <p class="mb-2">สต็อกส่วนที่ "กั้นไว้" ไม่ให้นำไปแสดงขายบนช่องทางต่างๆ เพื่อป้องกันสินค้าขาด (Oversell)</p>
+                <p class="text-emerald-400">↑ ปรับสูง: สต็อกที่แสดงขายลดลง (ปลอดภัยมากขึ้น)</p>
+                <p class="text-rose-400">↓ ปรับต่ำ: สต็อกที่แสดงขายมากขึ้น (เพิ่มโอกาสขาย)</p>
+                <div class="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-slate-800"></div>
+              </div>
+            </div>
           </h3>
           <div class="space-y-1">
             <div class="flex justify-between text-[11px] font-mono">
@@ -85,10 +97,22 @@
           <p class="text-[9px] text-gray-400 italic">Reduces total physical stock listed across all channels.</p>
         </div>
 
+        <!-- Sync Sensitivity (Rel) -->
         <div class="space-y-4">
           <h3 class="text-xs font-black text-brand-blue uppercase flex items-center gap-2">
             <span class="w-1.5 h-1.5 bg-brand-blue rounded-full"></span>
             Sync Sensitivity (Rel)
+            <!-- Tooltip -->
+            <div class="group relative inline-block">
+              <span class="cursor-help inline-flex items-center justify-center w-4 h-4 rounded-full bg-blue-100 text-brand-blue text-[10px] font-bold">?</span>
+              <div class="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 p-3 bg-slate-800 text-white text-[11px] font-normal normal-case rounded-lg opacity-0 group-hover:opacity-100 transition-opacity z-50 shadow-xl leading-relaxed">
+                <p class="font-bold mb-1 border-b border-slate-700 pb-1">เกณฑ์ความต่างแบบเปอร์เซ็นต์</p>
+                <p class="mb-2">กำหนดค่าเบี่ยงเบน (%) ที่ยอมรับได้ระหว่างสต็อกในระบบและหน้าร้าน ก่อนสั่งซิงค์ใหม่</p>
+                <p class="text-emerald-400">↑ ปรับสูง: ซิงค์ไม่บ่อย (ประหยัดทรัพยากรระบบ)</p>
+                <p class="text-rose-400">↓ ปรับต่ำ: ซิงค์บ่อยมาก (สต็อกแม่นยำตลอดเวลา)</p>
+                <div class="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-slate-800"></div>
+              </div>
+            </div>
           </h3>
           <div class="space-y-1">
             <div class="flex justify-between text-[11px] font-mono">
@@ -100,6 +124,7 @@
           <p class="text-[9px] text-gray-400 italic">Percentage difference before triggering a global sync.</p>
         </div>
 
+        <!-- Sync Sensitivity (Abs) -->
         <div class="space-y-4">
           <h3 class="text-xs font-black text-pink-500 uppercase flex items-center gap-2">
             <label class="flex items-center gap-2 cursor-pointer">
@@ -107,6 +132,17 @@
               <span class="w-1.5 h-1.5 bg-pink-500 rounded-full" :class="{ 'opacity-30': !absThresholdEnabled }"></span>
               <span :class="{ 'opacity-50': !absThresholdEnabled }">Sync Sensitivity (Abs)</span>
             </label>
+            <!-- Tooltip -->
+            <div class="group relative inline-block">
+              <span class="cursor-help inline-flex items-center justify-center w-4 h-4 rounded-full bg-pink-100 text-pink-600 text-[10px] font-bold">?</span>
+              <div class="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 p-3 bg-slate-800 text-white text-[11px] font-normal normal-case rounded-lg opacity-0 group-hover:opacity-100 transition-opacity z-50 shadow-xl leading-relaxed">
+                <p class="font-bold mb-1 border-b border-slate-700 pb-1">เกณฑ์ความต่างแบบจำนวนหน่วย</p>
+                <p class="mb-2">กำหนดจำนวนหน่วยความต่างที่จะสั่งซิงค์ทันทีโดยไม่สนเปอร์เซ็นต์</p>
+                <p class="text-emerald-400">↑ ปรับสูง: ยอมให้สต็อกต่างกันหลายหน่วยค่อยซิงค์</p>
+                <p class="text-rose-400">↓ ปรับต่ำ: ซิงค์ทันทีแม้สต็อกต่างกันเพียงเล็กน้อย</p>
+                <div class="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-slate-800"></div>
+              </div>
+            </div>
           </h3>
           <div class="space-y-1" :class="{ 'opacity-30': !absThresholdEnabled }">
             <div class="flex justify-between text-[11px] font-mono">
@@ -126,6 +162,17 @@
               <span class="w-1.5 h-1.5 bg-emerald-500 rounded-full" :class="{ 'opacity-30': !cutoffEnabled }"></span>
               <span :class="{ 'opacity-50': !cutoffEnabled }">Low Stock Cutoff</span>
             </label>
+            <!-- Tooltip -->
+            <div class="group relative inline-block">
+              <span class="cursor-help inline-flex items-center justify-center w-4 h-4 rounded-full bg-emerald-100 text-emerald-600 text-[10px] font-bold">?</span>
+              <div class="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 p-3 bg-slate-800 text-white text-[11px] font-normal normal-case rounded-lg opacity-0 group-hover:opacity-100 transition-opacity z-50 shadow-xl leading-relaxed">
+                <p class="font-bold mb-1 border-b border-slate-700 pb-1">ระบบหยุดขายอัตโนมัติเมื่อสต็อกต่ำ</p>
+                <p class="mb-2">เมื่อสต็อกลดลงถึงจุดที่กำหนด ระบบจะหยุดขายบนช่องทางรองเพื่อขายที่ช่องทางหลักที่เดียว</p>
+                <p class="text-emerald-400">↑ ปรับสูง: ย้ายไปขายที่เดียวเร็วขึ้น (ปลอดภัยมาก)</p>
+                <p class="text-rose-400">↓ ปรับต่ำ: ยอมให้ขายหลายที่ต่อ (เสี่ยงออเดอร์ซ้ำซ้อน)</p>
+                <div class="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-slate-800"></div>
+              </div>
+            </div>
           </h3>
           <div class="space-y-2" :class="{ 'opacity-30': !cutoffEnabled }">
             <div class="flex justify-between text-[11px] font-mono">
@@ -144,6 +191,7 @@
         </div>
       </div>
     </transition>
+
 
     <!-- Guide/Explainer Section (moved from footer) -->
     <div class="mb-6 glass-card p-4 overflow-hidden">
