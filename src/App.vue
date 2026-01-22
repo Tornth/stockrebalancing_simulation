@@ -51,16 +51,16 @@
             class="px-4 py-2 rounded-lg border text-xs font-bold uppercase tracking-wider transition-all"
             :class="showTuning ? 'bg-amber-500 border-amber-400 text-white shadow-lg shadow-amber-200/40' : 'bg-white border-gray-300 text-gray-500'"
           >
-            Engine Tuning
+            ปรับแต่งการทำงาน
           </button>
           
 <div v-if="previewStrategy" class="flex items-center gap-3 animate-pulse">
-             <span class="text-[10px] font-black text-brand-blue uppercase tracking-tighter">Unsaved Strategy Draft</span>
+             <span class="text-[10px] font-black text-brand-blue uppercase tracking-tighter">ตัวอย่างแผนงานใหม่</span>
              <button 
                @click="applyStrategy"
                class="px-6 py-2 bg-sync-pulse hover:bg-emerald-400 text-white font-black text-xs uppercase rounded-lg shadow-lg transition-all"
              >
-               Confirm Master Sync
+               ยืนยันการเปลี่ยนแผน
              </button>
           </div>
         </div>
