@@ -78,12 +78,13 @@
             <!-- Tooltip -->
             <div class="group relative inline-block">
               <span class="cursor-help inline-flex items-center justify-center w-4 h-4 rounded-full bg-amber-100 text-amber-600 text-[10px] font-bold">?</span>
-              <div class="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 p-3 bg-slate-800 text-white text-[11px] font-normal normal-case rounded-lg opacity-0 group-hover:opacity-100 transition-opacity z-50 shadow-xl leading-relaxed">
-                <p class="font-bold mb-1 border-b border-slate-700 pb-1">สำรองสต็อกเพื่อความปลอดภัย</p>
-                <p class="mb-2">สต็อกส่วนที่ "กั้นไว้" ไม่ให้นำไปแสดงขายบนช่องทางต่างๆ เพื่อป้องกันสินค้าขาด (Oversell)</p>
-                <p class="text-emerald-400">↑ ปรับสูง: สต็อกที่แสดงขายลดลง (ปลอดภัยมากขึ้น)</p>
-                <p class="text-rose-400">↓ ปรับต่ำ: สต็อกที่แสดงขายมากขึ้น (เพิ่มโอกาสขาย)</p>
-                <div class="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-slate-800"></div>
+              <div class="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 p-3 bg-white border border-gray-200 text-slate-600 text-[13px] font-normal normal-case rounded-xl opacity-0 group-hover:opacity-100 transition-opacity z-50 shadow-xl leading-relaxed">
+                <p class="font-bold mb-1 border-b border-gray-100 pb-1 text-amber-600">สำรองสต็อกเพื่อความปลอดภัย</p>
+                <p class="mb-2 italic">สต็อกส่วนที่ "กั้นไว้" ไม่ให้นำไปแสดงขายบนช่องทางต่างๆ เพื่อป้องกันสินค้าขาด (Oversell)</p>
+                <p class="text-emerald-600 font-bold">↑ ปรับสูง: สต็อกที่แสดงขายลดลง (ปลอดภัยมากขึ้น)</p>
+                <p class="text-rose-500 font-bold">↓ ปรับต่ำ: สต็อกที่แสดงขายมากขึ้น (เพิ่มโอกาสขาย)</p>
+                <div class="absolute top-full left-1/2 -translate-x-1/2 border-[6px] border-transparent border-t-white"></div>
+                <div class="absolute top-full left-1/2 -translate-x-1/2 border-[7px] border-transparent border-t-gray-200 -z-10 mt-[1px]"></div>
               </div>
             </div>
           </h3>
@@ -105,12 +106,13 @@
             <!-- Tooltip -->
             <div class="group relative inline-block">
               <span class="cursor-help inline-flex items-center justify-center w-4 h-4 rounded-full bg-blue-100 text-brand-blue text-[10px] font-bold">?</span>
-              <div class="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 p-3 bg-slate-800 text-white text-[11px] font-normal normal-case rounded-lg opacity-0 group-hover:opacity-100 transition-opacity z-50 shadow-xl leading-relaxed">
-                <p class="font-bold mb-1 border-b border-slate-700 pb-1">เกณฑ์ความต่างแบบเปอร์เซ็นต์</p>
-                <p class="mb-2">กำหนดค่าเบี่ยงเบน (%) ที่ยอมรับได้ระหว่างสต็อกในระบบและหน้าร้าน ก่อนสั่งซิงค์ใหม่</p>
-                <p class="text-emerald-400">↑ ปรับสูง: ซิงค์ไม่บ่อย (ประหยัดทรัพยากรระบบ)</p>
-                <p class="text-rose-400">↓ ปรับต่ำ: ซิงค์บ่อยมาก (สต็อกแม่นยำตลอดเวลา)</p>
-                <div class="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-slate-800"></div>
+              <div class="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 p-3 bg-white border border-gray-200 text-slate-600 text-[13px] font-normal normal-case rounded-xl opacity-0 group-hover:opacity-100 transition-opacity z-50 shadow-xl leading-relaxed">
+                <p class="font-bold mb-1 border-b border-gray-100 pb-1 text-brand-blue">เกณฑ์ความต่างแบบเปอร์เซ็นต์</p>
+                <p class="mb-2 italic">กำหนดค่าเบี่ยงเบน (%) ที่ยอมรับได้ระหว่างสต็อกในระบบและหน้าร้าน ก่อนสั่งซิงค์ใหม่</p>
+                <p class="text-emerald-600 font-bold">↑ ปรับสูง: ซิงค์ไม่บ่อย (ประหยัดทรัพยากรระบบ)</p>
+                <p class="text-rose-500 font-bold">↓ ปรับต่ำ: ซิงค์บ่อยมาก (สต็อกแม่นยำตลอดเวลา)</p>
+                <div class="absolute top-full left-1/2 -translate-x-1/2 border-[6px] border-transparent border-t-white"></div>
+                <div class="absolute top-full left-1/2 -translate-x-1/2 border-[7px] border-transparent border-t-gray-200 -z-10 mt-[1px]"></div>
               </div>
             </div>
           </h3>
@@ -135,12 +137,13 @@
             <!-- Tooltip -->
             <div class="group relative inline-block">
               <span class="cursor-help inline-flex items-center justify-center w-4 h-4 rounded-full bg-pink-100 text-pink-600 text-[10px] font-bold">?</span>
-              <div class="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 p-3 bg-slate-800 text-white text-[11px] font-normal normal-case rounded-lg opacity-0 group-hover:opacity-100 transition-opacity z-50 shadow-xl leading-relaxed">
-                <p class="font-bold mb-1 border-b border-slate-700 pb-1">เกณฑ์ความต่างแบบจำนวนหน่วย</p>
-                <p class="mb-2">กำหนดจำนวนหน่วยความต่างที่จะสั่งซิงค์ทันทีโดยไม่สนเปอร์เซ็นต์</p>
-                <p class="text-emerald-400">↑ ปรับสูง: ยอมให้สต็อกต่างกันหลายหน่วยค่อยซิงค์</p>
-                <p class="text-rose-400">↓ ปรับต่ำ: ซิงค์ทันทีแม้สต็อกต่างกันเพียงเล็กน้อย</p>
-                <div class="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-slate-800"></div>
+              <div class="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 p-3 bg-white border border-gray-200 text-slate-600 text-[13px] font-normal normal-case rounded-xl opacity-0 group-hover:opacity-100 transition-opacity z-50 shadow-xl leading-relaxed">
+                <p class="font-bold mb-1 border-b border-gray-100 pb-1 text-pink-600">เกณฑ์ความต่างแบบจำนวนหน่วย</p>
+                <p class="mb-2 italic">กำหนดจำนวนหน่วยความต่างที่จะสั่งซิงค์ทันทีโดยไม่สนเปอร์เซ็นต์</p>
+                <p class="text-emerald-600 font-bold">↑ ปรับสูง: ยอมให้สต็อกต่างกันหลายหน่วยค่อยซิงค์</p>
+                <p class="text-rose-500 font-bold">↓ ปรับต่ำ: ซิงค์ทันทีแม้สต็อกต่างกันเพียงเล็กน้อย</p>
+                <div class="absolute top-full left-1/2 -translate-x-1/2 border-[6px] border-transparent border-t-white"></div>
+                <div class="absolute top-full left-1/2 -translate-x-1/2 border-[7px] border-transparent border-t-gray-200 -z-10 mt-[1px]"></div>
               </div>
             </div>
           </h3>
@@ -165,12 +168,13 @@
             <!-- Tooltip -->
             <div class="group relative inline-block">
               <span class="cursor-help inline-flex items-center justify-center w-4 h-4 rounded-full bg-emerald-100 text-emerald-600 text-[10px] font-bold">?</span>
-              <div class="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 p-3 bg-slate-800 text-white text-[11px] font-normal normal-case rounded-lg opacity-0 group-hover:opacity-100 transition-opacity z-50 shadow-xl leading-relaxed">
-                <p class="font-bold mb-1 border-b border-slate-700 pb-1">ระบบหยุดขายอัตโนมัติเมื่อสต็อกต่ำ</p>
-                <p class="mb-2">เมื่อสต็อกลดลงถึงจุดที่กำหนด ระบบจะหยุดขายบนช่องทางรองเพื่อขายที่ช่องทางหลักที่เดียว</p>
-                <p class="text-emerald-400">↑ ปรับสูง: ย้ายไปขายที่เดียวเร็วขึ้น (ปลอดภัยมาก)</p>
-                <p class="text-rose-400">↓ ปรับต่ำ: ยอมให้ขายหลายที่ต่อ (เสี่ยงออเดอร์ซ้ำซ้อน)</p>
-                <div class="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-slate-800"></div>
+              <div class="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 p-3 bg-white border border-gray-200 text-slate-600 text-[13px] font-normal normal-case rounded-xl opacity-0 group-hover:opacity-100 transition-opacity z-50 shadow-xl leading-relaxed">
+                <p class="font-bold mb-1 border-b border-gray-100 pb-1 text-emerald-600">ระบบหยุดขายอัตโนมัติเมื่อสต็อกต่ำ</p>
+                <p class="mb-2 italic">เมื่อสต็อกลดลงถึงจุดที่กำหนด ระบบจะหยุดขายบนช่องทางรองเพื่อขายที่ช่องทางหลักที่เดียว</p>
+                <p class="text-emerald-600 font-bold">↑ ปรับสูง: ย้ายไปขายที่เดียวเร็วขึ้น (ปลอดภัยมาก)</p>
+                <p class="text-rose-500 font-bold">↓ ปรับต่ำ: ยอมให้ขายหลายที่ต่อ (เสี่ยงออเดอร์ซ้ำซ้อน)</p>
+                <div class="absolute top-full left-1/2 -translate-x-1/2 border-[6px] border-transparent border-t-white"></div>
+                <div class="absolute top-full left-1/2 -translate-x-1/2 border-[7px] border-transparent border-t-gray-200 -z-10 mt-[1px]"></div>
               </div>
             </div>
           </h3>
