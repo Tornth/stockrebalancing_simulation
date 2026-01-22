@@ -13,7 +13,7 @@
     <header class="mb-8 flex justify-between items-end border-b border-gray-200 pb-6">
       <div>
         <h1 class="text-4xl font-extrabold tracking-tight text-brand-text mb-2">
-          Stock<span class="text-brand-blue">Rebalancing Simulator</span>
+          Rebalancing<span class="text-brand-blue">Simulator</span>
         </h1>
         <div class="flex gap-4 items-center">
           <div class="bg-gray-100 p-1 rounded-lg flex gap-1 border border-gray-200">
@@ -66,28 +66,6 @@
         </div>
       </div>
     </header>
-
-    <!-- Guide/Explainer Section (moved from footer) -->
-    <div class="mb-6 glass-card p-4 overflow-hidden">
-      <div class="flex justify-between items-center mb-2">
-        <h3 class="text-sm font-bold text-brand-text flex items-center gap-2">
-          <span class="text-lg">📋</span>
-          คำอธิบายการทำงาน
-        </h3>
-        <span class="text-[10px] font-mono text-gray-400">Live Log</span>
-      </div>
-      <div class="h-20 overflow-y-auto text-sm space-y-1" ref="logContainer">
-        <div 
-          v-for="(log, index) in logs" 
-          :key="index" 
-          class="flex gap-2"
-          :class="getLogClass(log.type)"
-        >
-          <span class="text-gray-400 flex-shrink-0">[{{ log.time }}]</span>
-          <span>{{ log.message }}</span>
-        </div>
-      </div>
-    </div>
 
     <!-- Tuning Panel -->
     <transition name="slide-fade">
@@ -166,6 +144,29 @@
         </div>
       </div>
     </transition>
+
+    <!-- Guide/Explainer Section (moved from footer) -->
+    <div class="mb-6 glass-card p-4 overflow-hidden">
+      <div class="flex justify-between items-center mb-2">
+        <h3 class="text-sm font-bold text-brand-text flex items-center gap-2">
+          <span class="text-lg">📋</span>
+          คำอธิบายการทำงาน
+        </h3>
+        <span class="text-[10px] font-mono text-gray-400">Live Log</span>
+      </div>
+      <div class="h-20 overflow-y-auto text-sm space-y-1" ref="logContainer">
+        <div 
+          v-for="(log, index) in logs" 
+          :key="index" 
+          class="flex gap-2"
+          :class="getLogClass(log.type)"
+        >
+          <span class="text-gray-400 flex-shrink-0">[{{ log.time }}]</span>
+          <span>{{ log.message }}</span>
+        </div>
+      </div>
+    </div>
+
 
     <main class="grid grid-cols-12 gap-8 relative">
       <!-- Data Packet Layer (spans entire main grid) -->
@@ -350,15 +351,15 @@ export default {
   components: { ChannelCard },
   data() {
     return {
-      physicalStock: 1000,
-      displayPhysicalStock: 1000,
+      physicalStock: 100,
+      displayPhysicalStock: 100,
       bufferPercent: 5,
-      bufferStock: 50, // Fixed buffer: recalculates only on slider change or admin adjustment
+      bufferStock: 5, // Fixed buffer: recalculates only on slider change or admin adjustment
       reservedStock: 0, // Units held for pending orders (waiting for RTS)
-      pctThreshold: 5,
+      pctThreshold: 15,
       absThreshold: 2,
-      absThresholdEnabled: true,
-      cutoffEnabled: false,
+      absThresholdEnabled: false,
+      cutoffEnabled: true,
       cutoffThreshold: 20,
       cutoffPriorityChannel: 'shopee',
       isSyncing: false,
