@@ -29,7 +29,34 @@
               {{ s }}
             </button>
           </div>
-          <span class="text-xs text-gray-500 font-medium">Distribution Strategy</span>
+          <div class="flex items-center gap-1">
+            <span class="text-xs text-gray-500 font-medium whitespace-nowrap">Distribution Strategy</span>
+            <!-- Strategy Tooltip -->
+            <div class="group relative inline-block">
+              <span class="cursor-help inline-flex items-center justify-center w-4 h-4 rounded-full bg-blue-50 text-brand-blue text-[10px] font-bold">?</span>
+              <div class="pointer-events-none absolute top-full left-0 mt-2 w-72 p-4 bg-white border border-gray-200 text-slate-600 text-[13px] font-normal normal-case rounded-xl opacity-0 group-hover:opacity-100 transition-opacity z-50 shadow-xl leading-relaxed">
+                <p class="font-bold mb-2 border-b border-gray-100 pb-1 text-brand-blue">วิธีกระจายสต็อก (Strategies)</p>
+                
+                <div class="space-y-3">
+                  <div>
+                    <p class="font-bold text-slate-800">1. Weighted (ถ่วงน้ำหนัก)</p>
+                    <p>กระจายสต็อกตามสัดส่วน (%) ที่คุณกำหนดเองในแต่ละช่องทาง เหมาะสำหรับเน้นขายในที่ที่ทำกำไรได้มากกว่า</p>
+                  </div>
+                  <div>
+                    <p class="font-bold text-slate-800">2. Equal (สัดส่วนเท่ากัน)</p>
+                    <p>ระบบจะแบ่งสต็อกให้ทุกช่องทางเท่าๆ กันโดยอัตโนมัติ เพื่อกระจายโอกาสการเข้าถึงสินค้าอย่างยุติธรรม</p>
+                  </div>
+                  <div>
+                    <p class="font-bold text-slate-800">3. Mirror (แสดงสต็อกเต็มจำนวน)</p>
+                    <p>แสดงสต็อกที่มีทั้งหมดบนทุกช่องทางพร้อมกัน (เช่น มี 10 จะแสดง 10 ทุกที่) เพื่อเพิ่มโอกาสการขายสูงสุด แต่มีความนิยมเสี่ยง Oversell สูง</p>
+                  </div>
+                </div>
+                
+                <div class="absolute bottom-full left-4 border-[6px] border-transparent border-b-white"></div>
+                <div class="absolute bottom-full left-4 border-[7px] border-transparent border-b-gray-200 -z-10 mb-[1px]"></div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -80,7 +107,7 @@
               <span class="cursor-help inline-flex items-center justify-center w-4 h-4 rounded-full bg-amber-100 text-amber-600 text-[10px] font-bold">?</span>
               <div class="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 p-3 bg-white border border-gray-200 text-slate-600 text-[13px] font-normal normal-case rounded-xl opacity-0 group-hover:opacity-100 transition-opacity z-50 shadow-xl leading-relaxed">
                 <p class="font-bold mb-1 border-b border-gray-100 pb-1 text-amber-600">สำรองสต็อกเพื่อความปลอดภัย</p>
-                <p class="mb-2 italic">สต็อกส่วนที่ "กั้นไว้" ไม่ให้นำไปแสดงขายบนช่องทางต่างๆ เพื่อป้องกันสินค้าขาด (Oversell)</p>
+                <p class="mb-2 italic">สต็อกส่วนที่ "กั้นไว้" ไม่ให้นำไปแสดงขายบนช่องทางต่างๆ เพื่อป้องกัน Oversell</p>
                 <p class="text-emerald-600 font-bold">↑ ปรับสูง: สต็อกที่แสดงขายลดลง (ปลอดภัยมากขึ้น)</p>
                 <p class="text-rose-500 font-bold">↓ ปรับต่ำ: สต็อกที่แสดงขายมากขึ้น (เพิ่มโอกาสขาย)</p>
                 <div class="absolute top-full left-1/2 -translate-x-1/2 border-[6px] border-transparent border-t-white"></div>
@@ -170,7 +197,7 @@
               <span class="cursor-help inline-flex items-center justify-center w-4 h-4 rounded-full bg-emerald-100 text-emerald-600 text-[10px] font-bold">?</span>
               <div class="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 p-3 bg-white border border-gray-200 text-slate-600 text-[13px] font-normal normal-case rounded-xl opacity-0 group-hover:opacity-100 transition-opacity z-50 shadow-xl leading-relaxed">
                 <p class="font-bold mb-1 border-b border-gray-100 pb-1 text-emerald-600">ระบบหยุดขายอัตโนมัติเมื่อสต็อกต่ำ</p>
-                <p class="mb-2 italic">เมื่อสต็อกลดลงถึงจุดที่กำหนด ระบบจะหยุดขายบนช่องทางรองเพื่อขายที่ช่องทางหลักที่เดียว</p>
+                <p class="mb-2 italic">เมื่อสต็อกลดลงถึงจุดที่กำหนด ระบบจะโยก Stock ทั้งหมดไปขายที่ช่องทางหลักที่เดียว</p>
                 <p class="text-emerald-600 font-bold">↑ ปรับสูง: ย้ายไปขายที่เดียวเร็วขึ้น (ปลอดภัยมาก)</p>
                 <p class="text-rose-500 font-bold">↓ ปรับต่ำ: ยอมให้ขายหลายที่ต่อ (เสี่ยงออเดอร์ซ้ำซ้อน)</p>
                 <div class="absolute top-full left-1/2 -translate-x-1/2 border-[6px] border-transparent border-t-white"></div>
