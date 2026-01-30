@@ -334,13 +334,14 @@
                 <p class="text-xs text-gray-500 uppercase font-bold tracking-tight">Sales Stock (Available)</p>
                 <p class="text-3xl font-black" :class="isOversold ? 'text-red-600' : 'text-brand-blue'">{{ salesStock }}</p>
                 <p v-if="isOversold" class="text-[10px] text-red-600 font-bold uppercase tracking-tighter mt-1 animate-pulse">
-                  ⚠️ INVENTORY DEBT: {{ Math.abs(rawSalesStock) }}
+                  ⚠️ INVENTORY DEBT: {{ inventoryDebt }}
                 </p>
               </div>
               <div class="text-right">
                 <p class="text-xs text-gray-500 uppercase font-bold tracking-tight">Buffer</p>
                 <p class="text-2xl font-black transition-colors" :class="isBufferCompressed ? 'text-amber-500 animate-pulse' : 'text-drift-alert'">{{ effectiveBuffer }}</p>
-                <p v-if="isBufferCompressed" class="text-[9px] text-amber-500 italic font-bold">COMPRESSED</p>
+                <p v-if="isBufferCompressed && !isOversold" class="text-[9px] text-amber-500 italic font-bold">DEPLETED</p>
+                <p v-if="isOversold" class="text-[9px] text-red-600 italic font-bold">EXHAUSTED</p>
               </div>
             </div>
             
@@ -498,25 +499,35 @@ export default {
     activeSku() {
       return this.skuTypes.find(s => s.id === this.selectedSku);
     },
-    isBufferCompressed() {
-      // Buffer is compressed if it's smaller than the configured target (including debt)
-      return this.bufferStock > 0 && this.effectiveBuffer < this.bufferStock;
-    },
-    // Effective buffer: can be "compressed" down to 0 ONLY by physical stock limits, not reserved orders
+    // Effective buffer: can be "depleted" down to 0 by reserved orders.
+    // It shrinks only once Sales Stock (Physical - BufferTarget) is exhausted.
     effectiveBuffer() {
-      return Math.min(this.bufferStock, Math.max(0, this.physicalStock));
+      const remainingCapacity = Math.max(0, this.physicalStock - this.reservedStock);
+      return Math.min(this.bufferStock, remainingCapacity);
+    },
+    inventoryDebt() {
+      // True debt: when we've sold more than we physically have
+      return Math.max(0, this.reservedStock - this.physicalStock);
     },
     rawSalesStock() {
-      // Formula: Physical - Buffer - Reserved
-      // In "Hard Truth" mode, this can go negative (Sales Stock Debt)
-      return this.physicalStock - this.effectiveBuffer - this.reservedStock;
+      // Sales Stock follows the priority: Physical -> Buffer -> Sales
+      // Available for sales = Physical - Buffer (if any) - Reserved
+      // If this is negative, it means we are dipping into Buffer or Debt.
+      return this.physicalStock - this.bufferStock - this.reservedStock;
     },
     salesStock() {
       // Marketplace display: never show negative values
       return Math.max(0, this.rawSalesStock);
     },
+    isBufferCompressed() {
+      // Buffer is compressed/depleted when we have less available physical stock 
+      // than the target, OR when reserved orders are forcing us to use it.
+      const availablePhysical = this.physicalStock - this.reservedStock;
+      return this.bufferStock > 0 && availablePhysical < this.bufferStock;
+    },
     isOversold() {
-      return this.rawSalesStock < 0;
+      // Trigger critical alarms only on TRUE debt (Orders > Physical)
+      return this.inventoryDebt > 0;
     },
     effectiveInternalStock() {
       // Returns total stock currently on marketplaces (as singles)
@@ -800,8 +811,7 @@ export default {
       this.physicalStock -= toShip;
       this.reservedStock = 0;
       
-      // Recalculate buffer after shipment
-      this.recalculateBuffer(true);
+      // Removed recalculateBuffer(true) - User wants Buffer Target to be STICKY
       
       this.isSyncing = false;
       this.addLog(`จัดส่งแล้ว: ${toShip} หน่วย ออกจากคลัง Physical Stock: ${oldStock} → ${this.physicalStock}`, this.physicalStock < 0 ? 'warning' : 'success');
