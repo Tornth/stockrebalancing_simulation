@@ -9,6 +9,16 @@
       </div>
     </div>
 
+    <!-- Overselling Banner -->
+    <transition name="slide-fade">
+      <div v-if="salesStock < 0" class="fixed top-0 left-0 right-0 z-[60] bg-red-600 text-white py-2 shadow-2xl overflow-hidden">
+        <div class="flex items-center justify-center gap-4 animate-pulse">
+          <span class="text-xl font-black uppercase tracking-tighter">🚨 CRITICAL: STOCK COLLAPSE DETECTED</span>
+          <span class="text-sm font-bold bg-white/20 px-3 py-0.5 rounded-full">SYSTEM OVER-COMMITTED</span>
+        </div>
+      </div>
+    </transition>
+
     <!-- Header -->
     <header class="mb-8 flex justify-between items-end border-b border-gray-200 pb-6">
       <div>
@@ -269,47 +279,65 @@
           </h2>
           
           <!-- Physical Tank Visualization -->
-          <div class="relative h-64 bg-gray-50 rounded-2xl border border-gray-200 overflow-hidden mb-8 physical-tank-main">
+          <div class="relative h-64 bg-gray-50 rounded-2xl border border-gray-200 overflow-hidden mb-8 physical-tank-main" :class="{ 'ring-4 ring-red-500 ring-inset animate-pulse': salesStock < 0 }">
+            <!-- Debt Zone (Red growing up from bottom if stock is negative) -->
             <div 
+              v-if="physicalStock < 0"
+              class="absolute bottom-0 left-0 right-0 bg-red-600 transition-all duration-500"
+              :style="{ height: (Math.min(100, Math.abs(physicalStock))) + '%' }"
+            >
+              <div class="absolute top-0 left-0 right-0 h-1 bg-red-400 shadow-[0_0_15px_rgba(239,68,68,0.8)]"></div>
+              <span class="absolute top-2 left-2 text-[10px] font-black text-white uppercase italic">Inventory Debt</span>
+            </div>
+
+            <!-- Normal Stock Liquid -->
+            <div 
+              v-else
               class="absolute bottom-0 left-0 right-0 bg-brand-blue/20 transition-all duration-500"
-              :style="{ height: (physicalStock / 10) + '%' }"
+              :style="{ height: physicalStock + '%' }"
             >
               <div class="absolute top-0 left-0 right-0 h-1 bg-brand-blue shadow-[0_0_10px_rgba(0,136,255,0.5)]"></div>
             </div>
+
             <!-- Reserved Zone (above buffer) -->
             <div 
               v-if="reservedStock > 0"
               class="absolute bottom-0 left-0 right-0 border-t-2 border-dashed border-amber-500/70 bg-amber-500/20 transition-all duration-300"
-              :style="{ height: ((effectiveBuffer + reservedStock) / 10) + '%' }"
+              :style="{ height: (effectiveBuffer + reservedStock) + '%' }"
             >
               <span class="absolute -top-6 left-2 text-xs text-amber-600 font-mono">RESERVED ({{ reservedStock }})</span>
             </div>
-            <!-- Buffer Zone -->
+
             <div 
-              class="absolute bottom-0 left-0 right-0 border-t-2 border-dashed border-drift-alert/50 bg-drift-alert/10"
-              :style="{ height: (effectiveBuffer / 10) + '%' }"
+              class="absolute bottom-0 left-0 right-0 border-t-2 border-dashed border-drift-alert/50 transition-all duration-300"
+              :class="isBufferCompressed ? 'caution-stripe' : 'bg-drift-alert/10'"
+              :style="{ height: effectiveBuffer + '%' }"
             >
-              <span class="absolute -top-6 right-2 text-xs text-drift-alert font-mono">BUFFER ({{ effectiveBuffer }})</span>
+              <span class="absolute -top-6 right-2 text-xs text-drift-alert font-black">
+                {{ isBufferCompressed ? '⚠️ BUFFER COMPRESSED' : 'BUFFER' }} ({{ effectiveBuffer }})
+              </span>
             </div>
             
             <div class="absolute inset-0 flex flex-col items-center justify-center text-center">
-              <span class="text-5xl font-black text-brand-text rolling-number">{{ Math.round(displayPhysicalStock) }}</span>
-              <span class="text-xs uppercase tracking-widest text-gray-500">Physical Units</span>
+              <span class="text-5xl font-black rolling-number" :class="physicalStock < 0 ? 'text-red-600' : 'text-brand-text'">
+                {{ physicalStock < 0 ? '-' : '' }}{{ Math.round(Math.abs(displayPhysicalStock)) }}
+              </span>
+              <span class="text-xs uppercase tracking-widest" :class="physicalStock < 0 ? 'text-red-500 font-bold' : 'text-gray-500'">Physical Units</span>
             </div>
           </div>
 
           <!-- Stock Breakdown -->
           <div class="space-y-3">
             <!-- Sales Stock -->
-            <div class="flex justify-between items-center p-4 bg-gray-50 rounded-xl border border-gray-200">
+            <div class="flex justify-between items-center p-4 bg-gray-50 rounded-xl border transition-all" :class="salesStock < 0 ? 'border-red-500 shadow-[0_0_15px_rgba(239,68,68,0.3)]' : 'border-gray-200'">
               <div class="sales-stock-display">
                 <p class="text-xs text-gray-500 uppercase font-bold tracking-tight">Sales Stock (Available)</p>
-                <p class="text-3xl font-black text-brand-blue">{{ salesStock }}</p>
+                <p class="text-3xl font-black" :class="salesStock < 0 ? 'text-red-600' : 'text-brand-blue'">{{ salesStock }}</p>
               </div>
               <div class="text-right">
                 <p class="text-xs text-gray-500 uppercase font-bold tracking-tight">Buffer</p>
-                <p class="text-2xl font-black text-drift-alert">{{ effectiveBuffer }}</p>
-                <p v-if="effectiveBuffer < bufferStock" class="text-[9px] text-amber-500 italic">Capped (was {{ bufferStock }})</p>
+                <p class="text-2xl font-black transition-colors" :class="isBufferCompressed ? 'text-amber-500 animate-pulse' : 'text-drift-alert'">{{ effectiveBuffer }}</p>
+                <p v-if="isBufferCompressed" class="text-[9px] text-amber-500 italic font-bold">COMPRESSED</p>
               </div>
             </div>
             
@@ -467,13 +495,19 @@ export default {
     activeSku() {
       return this.skuTypes.find(s => s.id === this.selectedSku);
     },
-    // Effective buffer: capped at physical stock for safety (Option B)
+    isBufferCompressed() {
+      // Buffer is compressed if reserved stock starts eating into the safety margin (Sales Stock <= 0)
+      return this.physicalStock > 0 && this.salesStock <= 0 && this.reservedStock > 0;
+    },
+    // Effective buffer: can be "compressed" down to 0 by reserved orders
     effectiveBuffer() {
-      return Math.min(this.bufferStock, this.physicalStock);
+      const remainingCapacity = Math.max(0, this.physicalStock - this.reservedStock);
+      return Math.min(this.bufferStock, remainingCapacity);
     },
     salesStock() {
       // Formula: Physical - Buffer - Reserved
-      return Math.max(0, this.physicalStock - this.effectiveBuffer - this.reservedStock);
+      // In "Hard Truth" mode, this can go negative (Sales Stock Debt)
+      return this.physicalStock - this.effectiveBuffer - this.reservedStock;
     },
     effectiveInternalStock() {
       // Returns total stock currently on marketplaces (as singles)
@@ -691,17 +725,8 @@ export default {
       const channel = this.channels.find(c => c.id === channelId);
       const factor = this.activeSku.factor;
       
-      // Check if enough available stock (physical - buffer - reserved)
-      if (this.salesStock < factor) {
-        this.addLog(`ข้อผิดพลาด: สต็อกไม่พอ! สต็อกพร้อมขาย: ${this.salesStock}, ต้องการ: ${factor}`, 'warning');
-        return;
-      }
-      
-      // Check if THIS channel has enough stock to sell
-      if (channel.internal < factor) {
-        this.addLog(`ข้อผิดพลาด: ${channel.name} ไม่มีสต็อกพอขาย! มี: ${channel.internal}, ต้องการ: ${factor}`, 'warning');
-        return;
-      }
+      // In "Hard Truth" mode, we allow sales to proceed even if stock is 0
+      // this simulates the reality of overselling due to sync delays.
 
       // Stage 1: Reserve units (don't touch physical yet)
       this.reservedStock += factor;
@@ -750,12 +775,6 @@ export default {
       
       const toShip = this.reservedStock;
       
-      // Safety check: can't ship more than physical stock
-      if (toShip > this.physicalStock) {
-        this.addLog(`ข้อผิดพลาด: ไม่สามารถจัดส่ง ${toShip} หน่วย มี Physical Stock เพียง ${this.physicalStock} หน่วย!`, 'warning');
-        return;
-      }
-      
       this.isSyncing = true;
       this.addLog(`พร้อมจัดส่ง: กำลังดำเนินการ ${toShip} หน่วย...`);
       
@@ -765,12 +784,17 @@ export default {
       
       await new Promise(resolve => setTimeout(resolve, 1000));
       
-      // Fulfill orders: Physical decreases, Reserved clears
+      // "Hard Truth" fulfillment: Physical decreases even into negative stock
+      const oldStock = this.physicalStock;
       this.physicalStock -= toShip;
       this.reservedStock = 0;
       
       this.isSyncing = false;
-      this.addLog(`จัดส่งแล้ว: ${toShip} หน่วย ออกจากคลัง Physical Stock: ${this.physicalStock}, จอง: ${this.reservedStock}`, 'success');
+      this.addLog(`จัดส่งแล้ว: ${toShip} หน่วย ออกจากคลัง Physical Stock: ${oldStock} → ${this.physicalStock}`, this.physicalStock < 0 ? 'warning' : 'success');
+      
+      if (this.physicalStock < 0) {
+        this.addLog(`เตือนภัย: Stock ติดลบ! โปรดเติมสินค้าทันทีเพื่อแก้ปัญหา Overselling`, 'warning');
+      }
     },
     showDataPacket(targetId) {
       const packet = this.packetPool.find(p => !p.active);

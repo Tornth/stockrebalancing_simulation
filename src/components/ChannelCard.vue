@@ -1,14 +1,20 @@
 <template>
   <div 
-    class="glass-card p-5 relative transition-all duration-300"
+    class="glass-card p-5 relative transition-all duration-300 border-2"
     :class="[
+      salesStock < 0 ? 'bg-red-50/50 border-red-500 shadow-[0_0_20px_rgba(239,68,68,0.2)]' : 'border-transparent',
       channel.isManual ? 'bg-amber-50 border-amber-300' : '',
       apiFailing ? 'bg-red-50 border-red-300' : ''
     ]"
   >
-    <!-- Desync Warning -->
-    <div v-if="isDesynced" class="absolute -top-2 -right-2 bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-lg animate-bounce uppercase">
-      Desync Warning
+    <!-- Disaster Warnings -->
+    <div class="absolute -top-2 -right-2 flex gap-1">
+      <div v-if="salesStock < 0" class="bg-red-600 text-white text-[10px] font-black px-2 py-0.5 rounded-full shadow-lg animate-pulse uppercase border border-white/20">
+        Overselling
+      </div>
+      <div v-if="isDesynced" class="bg-amber-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-lg animate-bounce uppercase">
+        Desync
+      </div>
     </div>
 
     <!-- Card Header -->
