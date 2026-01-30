@@ -502,10 +502,9 @@ export default {
       // Buffer is compressed if it's smaller than the configured target (including debt)
       return this.bufferStock > 0 && this.effectiveBuffer < this.bufferStock;
     },
-    // Effective buffer: can be "compressed" down to 0 by reserved orders
+    // Effective buffer: can be "compressed" down to 0 ONLY by physical stock limits, not reserved orders
     effectiveBuffer() {
-      const remainingCapacity = Math.max(0, this.physicalStock - this.reservedStock);
-      return Math.min(this.bufferStock, remainingCapacity);
+      return Math.min(this.bufferStock, Math.max(0, this.physicalStock));
     },
     rawSalesStock() {
       // Formula: Physical - Buffer - Reserved
@@ -529,10 +528,8 @@ export default {
       gsap.to(this, { displayPhysicalStock: newVal, duration: 0.5 });
     },
     bufferPercent: {
-      handler(newVal) {
-        // Recalculate fixed buffer when slider changes
-        this.bufferStock = Math.ceil(this.physicalStock * (newVal / 100));
-        this.addLog(`คำนวณ Buffer ใหม่: ${this.bufferStock} หน่วย (${newVal}% ของ ${this.physicalStock})`);
+      handler() {
+        this.recalculateBuffer();
       }
     },
     salesStock: {
@@ -542,6 +539,13 @@ export default {
     }
   },
   methods: {
+    recalculateBuffer(silent = false) {
+      const baseStock = Math.max(0, this.physicalStock);
+      this.bufferStock = Math.ceil(baseStock * (this.bufferPercent / 100));
+      if (!silent) {
+        this.addLog(`อัปเดต Buffer: ${this.bufferStock} หน่วย (${this.bufferPercent}% ของ Physical ${baseStock})`, 'info');
+      }
+    },
     addLog(message, type = 'info') {
       const now = new Date();
       const time = now.toTimeString().split(' ')[0];
@@ -574,10 +578,7 @@ export default {
       this.physicalStock = newStock;
       
       // Always recalculate buffer on admin adjustment
-      const oldBuffer = this.bufferStock;
-      this.bufferStock = Math.ceil(newStock * (this.bufferPercent / 100));
-      
-      this.addLog(`แอดมินปรับสต็อก (${direction}): Physical Stock ${oldStock} → ${newStock} (${diff > 0 ? '+' : ''}${diff}). Buffer: ${oldBuffer} → ${this.bufferStock}`);
+      this.recalculateBuffer();
       
       // Clear input
       this.stockAdjustmentInput = null;
@@ -799,6 +800,9 @@ export default {
       this.physicalStock -= toShip;
       this.reservedStock = 0;
       
+      // Recalculate buffer after shipment
+      this.recalculateBuffer(true);
+      
       this.isSyncing = false;
       this.addLog(`จัดส่งแล้ว: ${toShip} หน่วย ออกจากคลัง Physical Stock: ${oldStock} → ${this.physicalStock}`, this.physicalStock < 0 ? 'warning' : 'success');
       
@@ -906,6 +910,9 @@ export default {
     for (let i = 0; i < 10; i++) {
       this.packetPool.push({ id: i, active: false });
     }
+    
+    // Initial buffer calculation
+    this.recalculateBuffer(true);
     
     // Calculate ideals and sync internals on load
     this.updateIdeals();
