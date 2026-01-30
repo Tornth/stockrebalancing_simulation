@@ -311,7 +311,7 @@
             <div 
               class="absolute bottom-0 left-0 right-0 border-t-2 border-dashed border-drift-alert/50 transition-all duration-300"
               :class="isBufferCompressed ? 'caution-stripe' : 'bg-drift-alert/10'"
-              :style="{ height: effectiveBuffer + '%' }"
+              :style="{ height: (isBufferCompressed ? Math.max(4, effectiveBuffer) : effectiveBuffer) + '%' }"
             >
               <span class="absolute -top-6 right-2 text-xs text-drift-alert font-black">
                 {{ isBufferCompressed ? '⚠️ BUFFER COMPRESSED' : 'BUFFER' }} ({{ effectiveBuffer }})
@@ -496,8 +496,8 @@ export default {
       return this.skuTypes.find(s => s.id === this.selectedSku);
     },
     isBufferCompressed() {
-      // Buffer is compressed if reserved stock starts eating into the safety margin (Sales Stock <= 0)
-      return this.physicalStock > 0 && this.salesStock <= 0 && this.reservedStock > 0;
+      // Buffer is compressed if it's smaller than the configured target (including debt)
+      return this.bufferStock > 0 && this.effectiveBuffer < this.bufferStock;
     },
     // Effective buffer: can be "compressed" down to 0 by reserved orders
     effectiveBuffer() {
