@@ -11,7 +11,7 @@
 
     <!-- Overselling Banner -->
     <transition name="slide-fade">
-      <div v-if="salesStock < 0" class="fixed top-0 left-0 right-0 z-[60] bg-red-600 text-white py-2 shadow-2xl overflow-hidden">
+      <div v-if="isOversold" class="fixed top-0 left-0 right-0 z-[60] bg-red-600 text-white py-2 shadow-2xl overflow-hidden">
         <div class="flex items-center justify-center gap-4 animate-pulse">
           <span class="text-xl font-black uppercase tracking-tighter">🚨 CRITICAL: STOCK COLLAPSE DETECTED</span>
           <span class="text-sm font-bold bg-white/20 px-3 py-0.5 rounded-full">SYSTEM OVER-COMMITTED</span>
@@ -279,7 +279,7 @@
           </h2>
           
           <!-- Physical Tank Visualization -->
-          <div class="relative h-64 bg-gray-50 rounded-2xl border border-gray-200 overflow-hidden mb-8 physical-tank-main" :class="{ 'ring-4 ring-red-500 ring-inset animate-pulse': salesStock < 0 }">
+          <div class="relative h-64 bg-gray-50 rounded-2xl border border-gray-200 overflow-hidden mb-8 physical-tank-main" :class="{ 'ring-4 ring-red-500 ring-inset animate-pulse': isOversold }">
             <!-- Debt Zone (Red growing up from bottom if stock is negative) -->
             <div 
               v-if="physicalStock < 0"
@@ -329,10 +329,13 @@
           <!-- Stock Breakdown -->
           <div class="space-y-3">
             <!-- Sales Stock -->
-            <div class="flex justify-between items-center p-4 bg-gray-50 rounded-xl border transition-all" :class="salesStock < 0 ? 'border-red-500 shadow-[0_0_15px_rgba(239,68,68,0.3)]' : 'border-gray-200'">
+            <div class="flex justify-between items-center p-4 bg-gray-50 rounded-xl border transition-all" :class="isOversold ? 'border-red-500 shadow-[0_0_15px_rgba(239,68,68,0.3)]' : 'border-gray-200'">
               <div class="sales-stock-display">
                 <p class="text-xs text-gray-500 uppercase font-bold tracking-tight">Sales Stock (Available)</p>
-                <p class="text-3xl font-black" :class="salesStock < 0 ? 'text-red-600' : 'text-brand-blue'">{{ salesStock }}</p>
+                <p class="text-3xl font-black" :class="isOversold ? 'text-red-600' : 'text-brand-blue'">{{ salesStock }}</p>
+                <p v-if="isOversold" class="text-[10px] text-red-600 font-bold uppercase tracking-tighter mt-1 animate-pulse">
+                  ⚠️ INVENTORY DEBT: {{ Math.abs(rawSalesStock) }}
+                </p>
               </div>
               <div class="text-right">
                 <p class="text-xs text-gray-500 uppercase font-bold tracking-tight">Buffer</p>
@@ -504,10 +507,17 @@ export default {
       const remainingCapacity = Math.max(0, this.physicalStock - this.reservedStock);
       return Math.min(this.bufferStock, remainingCapacity);
     },
-    salesStock() {
+    rawSalesStock() {
       // Formula: Physical - Buffer - Reserved
       // In "Hard Truth" mode, this can go negative (Sales Stock Debt)
       return this.physicalStock - this.effectiveBuffer - this.reservedStock;
+    },
+    salesStock() {
+      // Marketplace display: never show negative values
+      return Math.max(0, this.rawSalesStock);
+    },
+    isOversold() {
+      return this.rawSalesStock < 0;
     },
     effectiveInternalStock() {
       // Returns total stock currently on marketplaces (as singles)
