@@ -591,8 +591,8 @@ export default {
         
         this.channels.forEach(ch => {
           if (ch.id === this.cutoffPriorityChannel) {
-            ch.ideal = this.salesStock;
-            ch.ghostValue = this.previewStrategy ? this.salesStock : null;
+            ch.ideal = Math.max(0, this.salesStock);
+            ch.ghostValue = this.previewStrategy ? Math.max(0, this.salesStock) : null;
           } else {
             ch.ideal = 0;
             ch.ghostValue = this.previewStrategy ? 0 : null;
@@ -611,8 +611,8 @@ export default {
       if (strategy === 'mirror') {
         // Mirror: All channels get full salesStock
         this.channels.forEach(ch => {
-          ch.ideal = this.salesStock;
-          ch.ghostValue = this.previewStrategy ? this.salesStock : null;
+          ch.ideal = Math.max(0, this.salesStock);
+          ch.ghostValue = this.previewStrategy ? Math.max(0, this.salesStock) : null;
         });
         return;
       }
@@ -626,11 +626,11 @@ export default {
         } else if (strategy === 'equal') {
           baseIdeal = Math.floor(this.salesStock / this.channels.length);
         }
-        ch.ideal = baseIdeal;
-        totalAllocated += baseIdeal;
+        ch.ideal = Math.max(0, baseIdeal);
+        totalAllocated += ch.ideal;
         
         // Ghost value for preview
-        ch.ghostValue = this.previewStrategy ? baseIdeal : null;
+        ch.ghostValue = this.previewStrategy ? Math.max(0, baseIdeal) : null;
       });
 
       // Remainder Capture: Distribute remaining units proportionally

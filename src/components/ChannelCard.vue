@@ -9,7 +9,7 @@
   >
     <!-- Disaster Warnings -->
     <div class="absolute -top-2 -right-2 flex gap-1">
-      <div v-if="salesStock < 0" class="bg-red-600 text-white text-[10px] font-black px-2 py-0.5 rounded-full shadow-lg animate-pulse uppercase border border-white/20">
+      <div v-if="salesStock < 0 && channel.internal > 0" class="bg-red-600 text-white text-[10px] font-black px-2 py-0.5 rounded-full shadow-lg animate-pulse uppercase border border-white/20">
         Overselling
       </div>
       <div v-if="isDesynced" class="bg-amber-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-lg animate-bounce uppercase">
@@ -184,7 +184,9 @@ export default {
     },
     driftPercent() {
       // Use raw singles for percentage to avoid flooring errors
-      if (this.channel.ideal === 0) return 0;
+      if (this.channel.ideal === 0) {
+        return this.channel.internal > 0 ? 100 : 0;
+      }
       return Math.round((this.rawDrift / this.channel.ideal) * 100);
     },
     ghostDelta() {
