@@ -67,25 +67,25 @@ input[type=range]::-webkit-slider-thumb {
   display: inline-block;
 }
 
-.slide-fade-enter-active, .slide-fade-leave-active {
+.slide-fade-enter-active,
+.slide-fade-leave-active {
   transition: all 0.3s ease;
 }
-.slide-fade-enter, .slide-fade-leave-to {
+
+.slide-fade-enter,
+.slide-fade-leave-to {
   transform: translateY(-20px);
   opacity: 0;
 }
 
 /* High-Visibility Caution Stripes for Compressed Buffer */
 .caution-stripe {
-  background: repeating-linear-gradient(
-    45deg,
-    #fde047,
-    #fde047 12px,
-    #000000 12px,
-    #000000 24px
-  );
+  background: repeating-linear-gradient(45deg,
+      #fde047,
+      #fde047 12px,
+      #000000 12px,
+      #000000 24px);
   opacity: 0.8 !important;
   border-bottom: 2px solid #000;
   border-top: 2px solid #000;
 }
-

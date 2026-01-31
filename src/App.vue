@@ -230,6 +230,37 @@
           </div>
           <p class="text-[9px] text-gray-400 italic" :class="{ 'opacity-30': !cutoffEnabled }">When stock falls below threshold, consolidate to one channel.</p>
         </div>
+
+        <!-- Chaos Mode Section -->
+        <div class="col-span-4 mt-2 pt-4 border-t border-gray-100 flex justify-between items-center">
+          <div>
+            <h3 class="text-xs font-black text-red-600 uppercase flex items-center gap-2">
+              <span class="w-1.5 h-1.5 bg-red-500 rounded-full" :class="{ 'animate-ping': isChaosMode }"></span>
+              Stress Test Environment
+            </h3>
+            <p class="text-[9px] text-gray-400 italic">Simulate a high-velocity flash sale to test your buffer strategy.</p>
+          </div>
+          <div class="flex items-center gap-3">
+            <div class="flex flex-col items-end gap-1">
+              <span class="text-[9px] font-bold text-gray-400 uppercase">Order Count</span>
+              <input 
+                v-model.number="chaosOrderLimit" 
+                type="number" 
+                min="1" max="100"
+                class="w-20 bg-white border border-gray-200 rounded-lg px-2 py-1.5 text-red-600 font-bold text-center focus:border-red-500 focus:outline-none"
+                :disabled="isChaosMode"
+              >
+            </div>
+            <button 
+              @click="triggerChaosMode"
+              :disabled="isChaosMode || salesStock <= 0"
+              class="px-6 py-2 bg-red-600 hover:bg-red-700 text-white font-black text-xs uppercase rounded-lg shadow-lg transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed group relative"
+            >
+              {{ isChaosMode ? 'Flash Sale in Progress...' : 'Launch Chaos Mode' }}
+              <span v-if="salesStock <= 0 && !isChaosMode" class="absolute -top-8 left-1/2 -translate-x-1/2 bg-gray-800 text-white text-[8px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">Needs available stock</span>
+            </button>
+          </div>
+        </div>
       </div>
     </transition>
 
@@ -279,12 +310,12 @@
           </h2>
           
           <!-- Physical Tank Visualization -->
-          <div class="relative h-64 bg-gray-50 rounded-2xl border border-gray-200 overflow-hidden mb-8 physical-tank-main" :class="{ 'ring-4 ring-red-500 ring-inset animate-pulse': isOversold }">
+          <div class="relative h-64 bg-gray-50 rounded-2xl border border-gray-200 overflow-hidden mb-8 physical-tank-main" :class="{ 'ring-4 ring-red-500 ring-inset animate-pulse': isOversold }" style="isolation: isolate;">
             <!-- Debt Zone (Red growing up from bottom if stock is negative) -->
             <div 
               v-if="physicalStock < 0"
               class="absolute bottom-0 left-0 right-0 bg-red-600 transition-all duration-500"
-              :style="{ height: (Math.min(100, Math.abs(physicalStock))) + '%' }"
+              :style="{ height: (Math.min(100, (Math.abs(physicalStock) / tankMaxCapacity) * 100)) + '%' }"
             >
               <div class="absolute top-0 left-0 right-0 h-1 bg-red-400 shadow-[0_0_15px_rgba(239,68,68,0.8)]"></div>
               <span class="absolute top-2 left-2 text-[10px] font-black text-white uppercase italic">Inventory Debt</span>
@@ -294,7 +325,7 @@
             <div 
               v-else
               class="absolute bottom-0 left-0 right-0 bg-brand-blue/20 transition-all duration-500"
-              :style="{ height: physicalStock + '%' }"
+              :style="{ height: (physicalStock / tankMaxCapacity) * 100 + '%' }"
             >
               <div class="absolute top-0 left-0 right-0 h-1 bg-brand-blue shadow-[0_0_10px_rgba(0,136,255,0.5)]"></div>
             </div>
@@ -303,7 +334,7 @@
             <div 
               v-if="reservedStock > 0"
               class="absolute bottom-0 left-0 right-0 border-t-2 border-dashed border-amber-500/70 bg-amber-500/20 transition-all duration-300"
-              :style="{ height: (effectiveBuffer + reservedStock) + '%' }"
+              :style="{ height: ((effectiveBuffer + reservedStock) / tankMaxCapacity) * 100 + '%' }"
             >
               <span class="absolute -top-6 left-2 text-xs text-amber-600 font-mono">RESERVED ({{ reservedStock }})</span>
             </div>
@@ -311,7 +342,7 @@
             <div 
               class="absolute bottom-0 left-0 right-0 border-t-2 border-dashed border-drift-alert/50 transition-all duration-300"
               :class="isBufferCompressed ? 'caution-stripe' : 'bg-drift-alert/10'"
-              :style="{ height: (isBufferCompressed ? Math.max(4, effectiveBuffer) : effectiveBuffer) + '%' }"
+              :style="{ height: ((isBufferCompressed ? Math.max(4, effectiveBuffer) : effectiveBuffer) / tankMaxCapacity) * 100 + '%' }"
             >
               <span class="absolute -top-6 right-2 text-xs text-drift-alert font-black">
                 {{ isBufferCompressed ? '⚠️ BUFFER COMPRESSED' : 'BUFFER' }} ({{ effectiveBuffer }})
@@ -324,6 +355,39 @@
               </span>
               <span class="text-xs uppercase tracking-widest" :class="physicalStock < 0 ? 'text-red-500 font-bold' : 'text-gray-500'">Physical Units</span>
             </div>
+          </div>
+
+          <!-- Risk Gauge Section -->
+          <div class="mb-8 flex flex-col items-center">
+            <div class="relative w-48 h-24 overflow-hidden">
+              <!-- Semi-circle Track -->
+              <svg viewBox="0 0 100 50" class="w-full h-full">
+                <path d="M 10 50 A 40 40 0 0 1 90 50" fill="none" stroke="#f3f4f6" stroke-width="8" stroke-linecap="round" />
+                <!-- Risk Progress -->
+                <path 
+                  d="M 10 50 A 40 40 0 0 1 90 50" 
+                  fill="none" 
+                  :stroke="riskColor" 
+                  stroke-width="8" 
+                  stroke-linecap="round" 
+                  stroke-dasharray="125.66" 
+                  :stroke-dashoffset="125.66 - (125.66 * (oversellRisk / 100))"
+                  class="transition-all duration-700 ease-out"
+                />
+              </svg>
+              <!-- Digital Output -->
+              <div class="absolute bottom-0 left-0 right-0 text-center">
+                <p class="text-[9px] font-black uppercase tracking-widest text-gray-400">Oversell Risk</p>
+                <p class="text-xl font-black font-mono transition-colors duration-500" :style="{ color: riskColor }">
+                  {{ oversellRisk }}%
+                </p>
+              </div>
+            </div>
+            <!-- Status Text -->
+            <p class="text-[9px] font-bold uppercase mt-2 italic flex items-center gap-2" :style="{ color: riskColor }">
+              <span class="w-1.5 h-1.5 rounded-full" :class="{ 'animate-ping': oversellRisk > 70 }" :style="{ backgroundColor: riskColor }"></span>
+              {{ riskStatus }}
+            </p>
           </div>
 
           <!-- Stock Breakdown -->
@@ -473,7 +537,11 @@ export default {
       cutoffEnabled: true,
       cutoffThreshold: 20,
       cutoffPriorityChannel: 'shopee',
+      isChaosMode: false,
+      chaosOrderLimit: 20,
       isSyncing: false,
+      orderTimestamps: [],
+      salesVelocity: 0,
       showBOM: false,
       showTuning: false,
       selectedStrategy: 'weighted',
@@ -486,10 +554,10 @@ export default {
       ],
       selectedSku: 'single',
       channels: [
-        { id: 'shopee', name: 'Shopee', weight: 40, internal: 380, ideal: 380, drift: 0, isManual: false, apiFailing: false },
-        { id: 'lazada', name: 'Lazada', weight: 30, internal: 285, ideal: 285, drift: 0, isManual: false, apiFailing: false },
-        { id: 'tiktok', name: 'TikTok', weight: 20, internal: 190, ideal: 190, drift: 0, isManual: false, apiFailing: false },
-        { id: 'website', name: 'BentoWeb', weight: 10, internal: 95, ideal: 95, drift: 0, isManual: false, apiFailing: false }
+        { id: 'shopee', name: 'Shopee', weight: 40, internal: 380, ideal: 380, drift: 0, orderCount: 0, isManual: false, apiFailing: false },
+        { id: 'lazada', name: 'Lazada', weight: 30, internal: 285, ideal: 285, drift: 0, orderCount: 0, isManual: false, apiFailing: false },
+        { id: 'tiktok', name: 'TikTok', weight: 20, internal: 190, ideal: 190, drift: 0, orderCount: 0, isManual: false, apiFailing: false },
+        { id: 'website', name: 'BentoWeb', weight: 10, internal: 95, ideal: 95, drift: 0, orderCount: 0, isManual: false, apiFailing: false }
       ],
       packetPool: [],
       stockAdjustmentInput: null
@@ -509,11 +577,38 @@ export default {
       // True debt: when we've sold more than we physically have
       return Math.max(0, this.reservedStock - this.physicalStock);
     },
+    oversellRisk() {
+      // Risk = (Velocity * Latency) / Max(1, SafeStock)
+      // Latency is simulated at ~0.8s
+      // SafeStock = salesStock + effectiveBuffer
+      const safeStock = this.salesStock + this.effectiveBuffer;
+      if (safeStock <= 0) return 100;
+      
+      const latency = 0.8; 
+      const risk = (this.salesVelocity * latency) / safeStock;
+      return Math.min(100, Math.round(risk * 100));
+    },
+    riskColor() {
+      if (this.oversellRisk < 40) return '#10b981'; // Green
+      if (this.oversellRisk < 80) return '#f59e0b'; // Amber
+      return '#ef4444'; // Red
+    },
+    riskStatus() {
+      if (this.salesVelocity === 0) return 'System Idling';
+      if (this.oversellRisk < 40) return 'Status: Stable';
+      if (this.oversellRisk < 70) return 'Status: Buffer Stressed';
+      if (this.oversellRisk < 90) return 'Status: Critical Risk';
+      return 'STATUS: GUARANTEED OVERSELL';
+    },
     rawSalesStock() {
       // Sales Stock follows the priority: Physical -> Buffer -> Sales
       // Available for sales = Physical - Buffer (if any) - Reserved
       // If this is negative, it means we are dipping into Buffer or Debt.
       return this.physicalStock - this.bufferStock - this.reservedStock;
+    },
+    tankMaxCapacity() {
+      // Scale visualization base on current levels, minimum 100
+      return Math.max(100, this.physicalStock, this.reservedStock + this.effectiveBuffer);
     },
     salesStock() {
       // Marketplace display: never show negative values
@@ -752,6 +847,8 @@ export default {
 
       // Stage 1: Reserve units (don't touch physical yet)
       this.reservedStock += factor;
+      channel.orderCount++;
+      this.orderTimestamps.push(Date.now());
       this.addLog(`ออเดอร์เข้า: ขาย ${this.activeSku.name} ผ่าน ${channel.name} จอง: +${factor} → รวมจอง: ${this.reservedStock}`);
       gsap.to(".sales-stock-display", { x: 5, yoyo: true, repeat: 3, duration: 0.05 });
 
@@ -788,6 +885,35 @@ export default {
       } else {
         this.addLog(`ไม่ต้องซิงค์: ค่าเบี่ยงเบนอยู่ในเกณฑ์ปลอดภัย`);
       }
+    },
+    async triggerChaosMode() {
+      if (this.isChaosMode || this.salesStock <= 0) return;
+      
+      this.isChaosMode = true;
+      this.addLog(`🚨 CHAOS MODE: Simulating ${this.chaosOrderLimit} high-velocity orders...`, "warning");
+      
+      const orderCount = this.chaosOrderLimit;
+      for (let i = 0; i < orderCount; i++) {
+        // Stop if we hit deep debt during chaos
+        if (this.physicalStock < -10) break;
+
+        const randomChannel = this.channels[Math.floor(Math.random() * this.channels.length)].id;
+        this.triggerOrder(randomChannel);
+
+        // Random burst interval (50ms - 250ms)
+        const delay = Math.random() * 200 + 50;
+        await new Promise(r => setTimeout(r, delay));
+      }
+
+      this.isChaosMode = false;
+      this.addLog("🏁 Chaos Mode Complete. Waiting for system recovery...", "success");
+    },
+    updateVelocity() {
+      const now = Date.now();
+      const windowMs = 3000; // 3 second window
+      this.orderTimestamps = this.orderTimestamps.filter(t => now - t < windowMs);
+      
+      this.salesVelocity = this.orderTimestamps.length / (windowMs / 1000);
     },
     async shipAll() {
       if (this.reservedStock === 0) {
@@ -924,6 +1050,11 @@ export default {
     // Initial buffer calculation
     this.recalculateBuffer(true);
     
+    // Start velocity tracker (every 200ms for smoothness)
+    setInterval(() => {
+      this.updateVelocity();
+    }, 200);
+
     // Calculate ideals and sync internals on load
     this.updateIdeals();
     this.channels.forEach(ch => {

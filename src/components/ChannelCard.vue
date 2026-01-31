@@ -20,7 +20,13 @@
     <!-- Card Header -->
     <div class="flex justify-between items-start mb-6">
       <div>
-        <h3 class="font-bold text-xl text-brand-text">{{ channel.name }}</h3>
+      <div class="flex flex-col">
+        <div class="flex items-center gap-2">
+          <h3 class="font-bold text-xl text-brand-text">{{ channel.name }}</h3>
+          <span class="bg-brand-blue/10 text-brand-blue text-[10px] font-black px-2 py-0.5 rounded-md border border-brand-blue/20">
+            {{ channel.orderCount }} ORDERS
+          </span>
+        </div>
         <button 
           @click="$emit('toggle-manual', channel.id)"
           class="flex items-center gap-1 mt-1 text-[10px] font-bold uppercase tracking-wider transition-colors"
@@ -36,7 +42,8 @@
           </template>
         </button>
       </div>
-      <div class="text-right">
+    </div>
+    <div class="text-right">
         <p class="text-[10px] text-gray-500 uppercase font-bold tracking-widest mb-1">Stock Drift</p>
         <div 
           class="text-xl font-mono font-bold"
@@ -68,10 +75,7 @@
         ]"
       >
         <div class="flex justify-between items-center mb-1">
-          <p class="text-[10px] text-gray-500 uppercase font-bold">Marketplace ({{ unitLabel }})</p>
-          <span v-if="isOverCapacity" class="text-[8px] text-red-500 font-black animate-pulse">
-            OVER IDEAL: +{{ channel.internal - channel.ideal }} SINGLES
-          </span>
+          <p class="text-[10px] text-gray-500 uppercase font-bold">List</p>
         </div>
         <input 
           v-if="channel.isManual"
