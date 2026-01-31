@@ -388,6 +388,10 @@
                 <span class="w-1.5 h-1.5 rounded-full" :class="{ 'animate-ping': oversellRisk > 70 }" :style="{ backgroundColor: riskColor }"></span>
                 {{ riskStatus }}
               </p>
+              <!-- Formula moved here for balance -->
+              <div class="mt-3 font-mono text-[8px] text-gray-400 bg-gray-200/40 py-1.5 px-2 rounded-lg border border-gray-200/50 text-center leading-tight">
+                Risk = (Velocity × Latency) / <br>(Sales Stock + Buffer)
+              </div>
             </div>
 
             <!-- Right: Thai Explanation -->
