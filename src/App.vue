@@ -946,7 +946,7 @@ export default {
       // Safety Floor: Keep existing unit target but cap by what's actually left.
       // This absorbs remaining stock into the buffer during low-stock situations
       // instead of shrinking the buffer and releasing 'unsafe' units for sale.
-      this.bufferStock = Math.min(this.bufferStock, this.physicalStock);
+      this.bufferStock = Math.max(0, Math.min(this.bufferStock, this.physicalStock));
       
       this.isSyncing = false;
       this.addLog(`จัดส่งแล้ว: ${toShip} หน่วย ออกจากคลัง Physical Stock: ${oldStock} → ${this.physicalStock}`, this.physicalStock < 0 ? 'warning' : 'success');
