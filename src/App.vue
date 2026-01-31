@@ -237,6 +237,18 @@
             <h3 class="text-xs font-black text-red-600 uppercase flex items-center gap-2">
               <span class="w-1.5 h-1.5 bg-red-500 rounded-full" :class="{ 'animate-ping': isChaosMode }"></span>
               Stress Test Environment
+              <!-- Tooltip -->
+              <div class="group relative inline-block">
+                <span class="cursor-help inline-flex items-center justify-center w-4 h-4 rounded-full bg-red-100 text-red-600 text-[10px] font-bold">?</span>
+                <div class="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 p-3 bg-white border border-gray-200 text-slate-600 text-[13px] font-normal normal-case rounded-xl opacity-0 group-hover:opacity-100 transition-opacity z-50 shadow-xl leading-relaxed">
+                  <p class="font-bold mb-1 border-b border-gray-100 pb-1 text-red-600">จำลองสถานการณ์ขายดีผิดปกติ</p>
+                  <p class="mb-2 italic">ระบบจะสร้างออเดอร์จำนวนมากแบบรัวๆ เข้ามาพร้อมกันจากทุกช่องทาง เพื่อทดสอบว่าค่า Buffer ที่คุณตั้งไว้เพียงพอหรือไม่</p>
+                  <p class="text-emerald-600 font-bold">✔ ทดสอบความไว: ดูการตัดสต็อกแบบ Real-time</p>
+                  <p class="text-emerald-600 font-bold">✔ ตรวจสอบการขายเกิน: ดูว่าสต็อกหน้าบ้านติดลบหรือไม่</p>
+                  <div class="absolute top-full left-1/2 -translate-x-1/2 border-[6px] border-transparent border-t-white"></div>
+                  <div class="absolute top-full left-1/2 -translate-x-1/2 border-[7px] border-transparent border-t-gray-200 -z-10 mt-[1px]"></div>
+                </div>
+              </div>
             </h3>
             <p class="text-[9px] text-gray-400 italic">Simulate a high-velocity flash sale to test your buffer strategy.</p>
           </div>
