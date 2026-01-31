@@ -357,37 +357,52 @@
             </div>
           </div>
 
-          <!-- Risk Gauge Section -->
-          <div class="mb-8 flex flex-col items-center">
-            <div class="relative w-48 h-24 overflow-hidden">
-              <!-- Semi-circle Track -->
-              <svg viewBox="0 0 100 50" class="w-full h-full">
-                <path d="M 10 50 A 40 40 0 0 1 90 50" fill="none" stroke="#f3f4f6" stroke-width="8" stroke-linecap="round" />
-                <!-- Risk Progress -->
-                <path 
-                  d="M 10 50 A 40 40 0 0 1 90 50" 
-                  fill="none" 
-                  :stroke="riskColor" 
-                  stroke-width="8" 
-                  stroke-linecap="round" 
-                  stroke-dasharray="125.66" 
-                  :stroke-dashoffset="125.66 - (125.66 * (oversellRisk / 100))"
-                  class="transition-all duration-700 ease-out"
-                />
-              </svg>
-              <!-- Digital Output -->
-              <div class="absolute bottom-0 left-0 right-0 text-center">
-                <p class="text-[9px] font-black uppercase tracking-widest text-gray-400">Oversell Risk</p>
-                <p class="text-xl font-black font-mono transition-colors duration-500" :style="{ color: riskColor }">
-                  {{ oversellRisk }}%
-                </p>
+          <!-- Risk Gauge Section (2-Column Explanation) -->
+          <div class="mb-8 p-6 bg-gray-50/50 rounded-2xl border border-gray-100 flex gap-6 items-center">
+            <!-- Left: Gauge Visualization -->
+            <div class="flex flex-col items-center flex-shrink-0">
+              <div class="relative w-40 h-20 overflow-hidden">
+                <!-- Semi-circle Track -->
+                <svg viewBox="0 0 100 50" class="w-full h-full text-gray-100">
+                  <path d="M 10 50 A 40 40 0 0 1 90 50" fill="none" stroke="currentColor" stroke-width="12" stroke-linecap="round" />
+                  <!-- Risk Progress -->
+                  <path 
+                    d="M 10 50 A 40 40 0 0 1 90 50" 
+                    fill="none" 
+                    :stroke="riskColor" 
+                    stroke-width="12" 
+                    stroke-linecap="round" 
+                    stroke-dasharray="125.66" 
+                    :stroke-dashoffset="125.66 - (125.66 * (oversellRisk / 100))"
+                    class="transition-all duration-700 ease-out"
+                  />
+                </svg>
+                <!-- Digital Output -->
+                <div class="absolute bottom-0 left-0 right-0 text-center">
+                  <p class="text-xs font-black font-mono transition-colors duration-500" :style="{ color: riskColor }">
+                    {{ oversellRisk }}%
+                  </p>
+                </div>
+              </div>
+              <p class="text-[9px] font-bold uppercase mt-2 italic flex items-center gap-2" :style="{ color: riskColor }">
+                <span class="w-1.5 h-1.5 rounded-full" :class="{ 'animate-ping': oversellRisk > 70 }" :style="{ backgroundColor: riskColor }"></span>
+                {{ riskStatus }}
+              </p>
+            </div>
+
+            <!-- Right: Thai Explanation -->
+            <div class="flex-grow">
+              <p class="text-[13px] text-brand-text leading-relaxed">
+                วิเคราะห์โอกาสขายเกินจาก <span class="font-bold">ความเร็วการขาย (Velocity)</span> 
+                เทียบกับ <span class="font-bold text-brand-blue">สต็อกคงเหลือ</span> 
+                โดยคำนวณรวมระยะเวลาที่ใช้ในการอัปเดตระบบ 
+                <span class="font-bold text-amber-500 italic">(Simulated Latency: 0.8s)</span>
+              </p>
+              <div class="mt-2 flex gap-3 opacity-60">
+                <div class="text-[9px] font-bold text-gray-400">VELOCITY: {{ salesVelocity.toFixed(1) }}/s</div>
+                <div class="text-[9px] font-bold text-gray-400">LATENCY: 0.8s</div>
               </div>
             </div>
-            <!-- Status Text -->
-            <p class="text-[9px] font-bold uppercase mt-2 italic flex items-center gap-2" :style="{ color: riskColor }">
-              <span class="w-1.5 h-1.5 rounded-full" :class="{ 'animate-ping': oversellRisk > 70 }" :style="{ backgroundColor: riskColor }"></span>
-              {{ riskStatus }}
-            </p>
           </div>
 
           <!-- Stock Breakdown -->
