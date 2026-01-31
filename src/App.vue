@@ -556,12 +556,16 @@
 import ChannelCard from './components/ChannelCard.vue';
 import { gsap } from 'gsap';
 
+import { SIMULATION_CONFIG, THRESHOLDS, TIMINGS } from './constants';
+import { InventoryEngine } from './services/InventoryEngine';
+
 export default {
   components: { ChannelCard },
   data() {
     return {
-      physicalStock: 100,
-      displayPhysicalStock: 100,
+      engine: new InventoryEngine(), // Instance of logic engine
+      physicalStock: SIMULATION_CONFIG.INITIAL_STOCK,
+      displayPhysicalStock: SIMULATION_CONFIG.INITIAL_STOCK,
       bufferPercent: 5,
       bufferStock: 5, // Fixed buffer: recalculates only on slider change or admin adjustment
       reservedStock: 0, // Units held for pending orders (waiting for RTS)
@@ -687,8 +691,14 @@ export default {
     // recalculateBuffer sets the "Unit Target" for safety.
     // It is called when stock is increased (Growth) or when settings change.
     recalculateBuffer(silent = false) {
+      // Update Engine State
+      this.engine.physicalStock = this.physicalStock;
+      this.engine.bufferPercent = this.bufferPercent;
+      this.engine.recalculateBuffer();
+      
+      this.bufferStock = this.engine.bufferStock;
+
       const baseStock = Math.max(0, this.physicalStock);
-      this.bufferStock = Math.ceil(baseStock * (this.bufferPercent / 100));
       if (!silent) {
         this.addLog(`อัปเดต Buffer: ${this.bufferStock} หน่วย (${this.bufferPercent}% ของ Physical ${baseStock})`, 'info');
       }
@@ -697,7 +707,7 @@ export default {
       const now = new Date();
       const time = now.toTimeString().split(' ')[0];
       this.logs.unshift({ time, message, type });
-      if (this.logs.length > 50) this.logs.pop();
+      if (this.logs.length > SIMULATION_CONFIG.LOG_Limit) this.logs.pop();
     },
     getLogClass(type) {
       switch (type) {
@@ -766,51 +776,19 @@ export default {
         this._wasInCutoffMode = false;
       }
       
-      if (strategy === 'mirror') {
-        // Mirror: All channels get full salesStock
-        this.channels.forEach(ch => {
-          ch.ideal = Math.max(0, this.salesStock);
-          ch.ghostValue = this.previewStrategy ? Math.max(0, this.salesStock) : null;
-        });
-        return;
-      }
+      // Calculate base ideals using Engine
       
-      // Calculate base ideals (use floor for safe under-allocation)
-      let totalAllocated = 0;
+      // Ensure engine has current channel config (weights)
+      this.engine.setChannels(this.channels);
+      
+      const newIdeals = this.engine.calculateIdeals(strategy, this.salesStock);
+      
+      // Apply results
       this.channels.forEach(ch => {
-        let baseIdeal = 0;
-        if (strategy === 'weighted') {
-          baseIdeal = Math.floor(this.salesStock * (ch.weight / 100));
-        } else if (strategy === 'equal') {
-          baseIdeal = Math.floor(this.salesStock / this.channels.length);
-        }
-        ch.ideal = Math.max(0, baseIdeal);
-        totalAllocated += ch.ideal;
-        
-        // Ghost value for preview
-        ch.ghostValue = this.previewStrategy ? Math.max(0, baseIdeal) : null;
+        ch.ideal = newIdeals[ch.id] || 0;
+        ch.ghostValue = this.previewStrategy ? ch.ideal : null;
       });
 
-      // Remainder Capture: Distribute remaining units proportionally
-      let remainder = this.salesStock - totalAllocated;
-      if (remainder > 0 && this.salesStock > 0) {
-        // Sort by weight descending for weighted, or alphabetically for equal
-        const sortedChannels = [...this.channels].sort((a, b) => {
-          if (strategy === 'weighted') return b.weight - a.weight;
-          return a.id.localeCompare(b.id);
-        });
-        
-        // Distribute remainder one unit at a time to highest priority channels
-        let i = 0;
-        while (remainder > 0) {
-          sortedChannels[i % sortedChannels.length].ideal += 1;
-          if (this.previewStrategy) {
-            sortedChannels[i % sortedChannels.length].ghostValue += 1;
-          }
-          remainder--;
-          i++;
-        }
-      }
     },
     setPreviewStrategy(strategy) {
       if (this.selectedStrategy === strategy) {
@@ -826,7 +804,7 @@ export default {
       this.isSyncing = true;
       this.addLog(`กำลังใช้กลยุทธ์ '${this.previewStrategy.toUpperCase()}' ทั้งระบบ...`);
       
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      await new Promise(resolve => setTimeout(resolve, TIMINGS.GHOST_STRATEGY_DELAY_MS));
       
       this.selectedStrategy = this.previewStrategy;
       this.previewStrategy = null;
@@ -834,33 +812,17 @@ export default {
       this.performMasterSync();
     },
     rebalanceWeights({ id, value }) {
-      const masterId = id;
-      const newValue = Math.round(parseFloat(value));
-      const masterChannel = this.channels.find(c => c.id === masterId);
-      const oldValue = masterChannel.weight;
-      const delta = newValue - oldValue;
+      const newValue = parseFloat(value);
+      this.engine.rebalanceWeights(this.channels, id, newValue);
       
-      const otherChannels = this.channels.filter(c => c.id !== masterId);
-      const sumOthers = otherChannels.reduce((acc, c) => acc + c.weight, 0);
-
-      if (sumOthers > 0) {
-        otherChannels.forEach(c => {
-          const reduction = delta * (c.weight / sumOthers);
-          c.weight = Math.max(0, Math.round(c.weight - reduction));
-        });
-      }
-
-      masterChannel.weight = newValue;
-      
-      // Cleanup to ensure exactly 100% with no decimals
-      let total = this.channels.reduce((acc, c) => acc + Math.round(c.weight), 0);
-      this.channels.forEach(c => c.weight = Math.round(c.weight));
-
+      // Cleanup visual rounding (UI specific)
+      // We keep this here because it modifies the bound data directly for the sliders
+      let total = this.channels.reduce((acc, c) => acc + c.weight, 0);
       const diff = 100 - total;
-      if (diff !== 0) {
-        // Find a valid channel to absorb the rounding difference
-        const target = otherChannels.find(c => c.weight > 0) || otherChannels[0] || masterChannel;
-        target.weight = Math.max(0, target.weight + diff);
+      if (Math.abs(diff) > 0.001) {
+         const otherChannels = this.channels.filter(c => c.id !== id);
+         const fallback = otherChannels.find(c => c.weight > 0) || otherChannels[0];
+         if (fallback) fallback.weight += diff;
       }
       
       this.updateIdeals();
@@ -898,24 +860,27 @@ export default {
 
       // Stage 3: Marketplace Drop (Delayed - simulate API travel time)
       // This creates the "Desync" period where Drift is visible
-      await new Promise(resolve => setTimeout(resolve, 800));
+      await new Promise(resolve => setTimeout(resolve, TIMINGS.MARKETPLACE_LATENCY_MS));
       channel.internal = Math.max(0, channel.internal - factor);
 
       // Stage 4: Global Drift Gatekeeper (Omnichannel Scan)
-      // We check raw SINGLES because drift in sets is just a derivative of single-unit movement.
       let syncRequired = false;
       let triggerReason = "";
 
       for (const ch of this.channels) {
         if (ch.isManual) continue;
 
-        // Use raw singles for logic consistency
-        const absDrift = Math.abs(ch.ideal - ch.internal);
-        const pctDrift = ch.ideal > 0 ? (absDrift / ch.ideal) : 0;
+        const result = this.engine.checkDrift(
+          ch.id, 
+          ch.internal, 
+          ch.ideal, 
+          this.pctThreshold, 
+          this.absThresholdEnabled ? this.absThreshold : 0
+        );
 
-        if (pctDrift > (this.pctThreshold / 100) || (this.absThresholdEnabled && absDrift >= this.absThreshold)) {
+        if (result.syncRequired) {
           syncRequired = true;
-          triggerReason = `${ch.name} ค่าเบี่ยงเบน (${absDrift} หน่วย / ${Math.round(pctDrift * 100)}%) เกินเกณฑ์ ${this.pctThreshold}% / ${this.absThreshold} หน่วย`;
+          triggerReason = `${ch.name}: ${result.reason}`;
           break; 
         }
       }
@@ -1072,10 +1037,11 @@ export default {
            gsap.to(`#card-${ch.id}`, { scale: 1.02, yoyo: true, repeat: 1, duration: 0.1 });
         }
       });
-
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      this.channels.forEach(ch => {
+ 
+       // Simulated Sync Delay
+       await new Promise(resolve => setTimeout(resolve, TIMINGS.MASTER_SYNC_DURATION_MS));
+       
+       this.channels.forEach(ch => {
         if (!ch.isManual && !ch.apiFailing) {
           ch.internal = ch.ideal;
         }
